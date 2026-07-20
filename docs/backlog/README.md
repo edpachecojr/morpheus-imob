@@ -2,6 +2,7 @@
 
 Épicos → features → estórias de usuário. Sequência de execução no
 [roadmap](../roadmap.md); justificativa de negócio no [PRD](../prd.md).
+Progresso de implementação em [estado.md](estado.md).
 
 ## Épicos
 

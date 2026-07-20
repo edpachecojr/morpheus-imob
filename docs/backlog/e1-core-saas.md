@@ -9,11 +9,19 @@ nenhum outro épico vaza dado, e refazê-lo depois custa migração de dados.
 
 ---
 
-## E1-F0 — Esqueleto do projeto
+## E1-F0 — Esqueleto do projeto — ◐ em andamento
 
 **Bloqueado por:** [ADR-0002](../adrs/0002-escolha-de-stack.md).
 
-### E1-F0-H1 `[MVP]` · 3 pts — Spike de stack
+> **Pendente para fechar a F0** (ver [estado.md](./estado.md)):
+> - **H1** — caminho crítico completo (webhook → fila → job → serviço externo
+>   falso → persistência com tenant → leitura mobile) ainda não provado; só a
+>   fatia de isolamento com Postgres real está coberta. Faltam também os 3
+>   `<a definir>` de [stack.md](../fundacao/stack.md).
+> - **H3** — pipeline de CI (`.github/workflows`) inexistente.
+> - **H4** — fila de jobs e agendador não implementados.
+
+### ◐ E1-F0-H1 `[MVP]` · 3 pts — Spike de stack
 **Como** time, **quero** provar o caminho crítico numa stack candidata, **para**
 decidir com evidência em vez de preferência.
 
@@ -24,7 +32,7 @@ decidir com evidência em vez de preferência.
 - **E** [fundacao/stack.md](../fundacao/stack.md) e os `<a definir>` do
   CLAUDE.md são preenchidos.
 
-### E1-F0-H2 `[MVP]` · 2 pts — Projeto sobe e a suíte roda
+### ✅ E1-F0-H2 `[MVP]` · 2 pts — Projeto sobe e a suíte roda
 **Como** desenvolvedor, **quero** um comando para subir e um para testar,
 **para** que ninguém invente processo próprio.
 
@@ -35,7 +43,7 @@ decidir com evidência em vez de preferência.
 - **E** a aplicação **falha ao subir** com variável de ambiente faltando,
   informando qual falta e o formato esperado.
 
-### E1-F0-H3 `[MVP]` · 2 pts — CI barra o que não presta
+### ☐ E1-F0-H3 `[MVP]` · 2 pts — CI barra o que não presta
 **Como** time, **quero** verificação automática em todo push, **para** que a
 regra não dependa de alguém lembrar na revisão.
 
@@ -44,7 +52,7 @@ regra não dependa de alguém lembrar na revisão.
 - **E** falha em qualquer etapa impede o merge.
 - **E** a CI roda sem acesso a serviço externo real.
 
-### E1-F0-H4 `[MVP]` · 3 pts — Fila de jobs e agendador
+### ☐ E1-F0-H4 `[MVP]` · 3 pts — Fila de jobs e agendador
 **Como** sistema, **quero** executar trabalho assíncrono e agendado, **para**
 sustentar dunning, lembretes e relatórios.
 
@@ -56,9 +64,9 @@ sustentar dunning, lembretes e relatórios.
 
 ---
 
-## E1-F1 — Tenant e isolamento
+## E1-F1 — Tenant e isolamento — ◐ em andamento
 
-### E1-F1-H1 `[MVP]` · 5 pts — Isolamento imposto na camada de dados
+### ✅ E1-F1-H1 `[MVP]` · 5 pts — Isolamento imposto na camada de dados
 **Como** cliente do SaaS, **quero** que meus dados sejam inacessíveis a outros
 tenants, **para** confiar documentos dos meus clientes à ferramenta.
 
@@ -69,7 +77,7 @@ tenants, **para** confiar documentos dos meus clientes à ferramenta.
 - **E** FK apontando para entidade de outro tenant é rejeitada pelo banco.
 - **E** os testes de [multi-tenancy](../fundacao/multi-tenancy.md#testes-obrigatórios) passam integralmente.
 
-### E1-F1-H2 `[MVP]` · 2 pts — Criação de conta e tenant
+### ☐ E1-F1-H2 `[MVP]` · 2 pts — Criação de conta e tenant
 **Como** corretor autônomo, **quero** criar minha conta, **para** começar a usar
 sem falar com ninguém.
 
@@ -79,7 +87,7 @@ sem falar com ninguém.
 - **E** o tenant nasce com configuração padrão utilizável (fuso, janela de
   atendimento padrão).
 
-### E1-F1-H3 `[MVP]` · 1 pt — Chave única por tenant
+### ✅ E1-F1-H3 `[MVP]` · 1 pt — Chave única por tenant
 **Como** cliente, **quero** usar meus próprios códigos de referência, **para**
 não depender do que outro cliente já usou.
 
@@ -90,7 +98,7 @@ não depender do que outro cliente já usou.
 
 ---
 
-## E1-F2 — Autenticação
+## E1-F2 — Autenticação — ☐ não iniciada
 
 Regras completas em [autenticacao.md](../fundacao/autenticacao.md).
 
@@ -130,7 +138,7 @@ Pós-MVP. Requisito de venda para imobiliária com equipe.
 
 ---
 
-## E1-F3 — Autorização
+## E1-F3 — Autorização — ☐ não iniciada
 
 Matriz de permissões em [autorizacao.md](../fundacao/autorizacao.md).
 
@@ -160,9 +168,9 @@ MVP para não exigir migração.
 
 ---
 
-## E1-F4 — Observabilidade
+## E1-F4 — Observabilidade — ◐ em andamento
 
-### E1-F4-H1 `[MVP]` · 2 pts — Log JSON estruturado
+### ◐ E1-F4-H1 `[MVP]` · 2 pts — Log JSON estruturado
 **Como** operador, **quero** log pesquisável, **para** investigar incidente sem
 adivinhar.
 
@@ -171,7 +179,10 @@ adivinhar.
 - **E** um teste automatizado prova que nenhum log contém token, senha, hash ou
   dado pessoal não mascarado.
 
-### E1-F4-H2 `[MVP]` · 2 pts — Tratamento de erro ponta a ponta
+> **◐ Parcial:** o host já emite log em JSON (`AddJsonConsole` em `Program.cs`).
+> Faltam os campos `tenant_id` e `request_id`/`job_id` e o teste anti-vazamento.
+
+### ☐ E1-F4-H2 `[MVP]` · 2 pts — Tratamento de erro ponta a ponta
 - **Dado** um erro não tratado, **quando** ocorrer, **então** o usuário recebe
   mensagem útil sem detalhe interno, e o log registra o contexto completo.
 - **E** o erro carrega o valor que causou a falha e o formato esperado.
