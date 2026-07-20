@@ -51,7 +51,7 @@ public static class ConfiguracaoDeInfraestrutura
     private static void AdicionarIsolamentoPorOrganizacao(IServiceCollection servicos)
     {
         servicos.AddSingleton<ICacheDeOrganizacaoDoUsuario, CacheDeOrganizacaoEmMemoria>();
-        servicos.AddScoped<IConsultaDaOrganizacaoDoUsuario, ConsultaDaOrganizacaoDoUsuarioComEfCore>();
+        servicos.AddScoped<IConsultaDaOrganizacaoDoUsuario, ConsultaDaOrganizacaoDoUsuarioComDapper>();
         servicos.AddScoped<IResolvedorDaOrganizacaoDoUsuario, ResolvedorDaOrganizacaoDoUsuario>();
         servicos.AddScoped<IContextoDaOrganizacaoAtual, ContextoDaOrganizacaoAtual>();
     }
