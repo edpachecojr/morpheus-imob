@@ -1,0 +1,27 @@
+# Segredos — repositório público, nada de credencial versionada
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*.json
+*service-account*.json
+
+# Dependências e build
+node_modules/
+dist/
+build/
+target/
+__pycache__/
+*.pyc
+.venv/
+
+# Backups gerados pelo ai-memory install-instructions
+*.bak-*
+
+# Ferramentas e SO
+.DS_Store
+.idea/
+.vscode/
+*.log
+coverage/
