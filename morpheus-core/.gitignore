@@ -1,0 +1,9 @@
+# Artefatos de build .NET
+bin/
+obj/
+*.user
+
+# Saída de testes e cobertura
+[Tt]est[Rr]esults/
+*.trx
+coverage.*.xml

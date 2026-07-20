@@ -1,0 +1,22 @@
+# Postgres local para desenvolvimento. Credenciais aqui são dummy de dev —
+# nunca use estes valores fora da sua máquina.
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: morpheus-postgres
+    environment:
+      POSTGRES_DB: morpheus
+      POSTGRES_USER: morpheus
+      POSTGRES_PASSWORD: morpheus
+    ports:
+      - "5432:5432"
+    volumes:
+      - morpheus-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U morpheus -d morpheus"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  morpheus-postgres:

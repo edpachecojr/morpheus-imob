@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Morpheus.Api/Morpheus.Api.csproj" />
+    <Project Path="src/Morpheus.Aplicacao/Morpheus.Aplicacao.csproj" />
+    <Project Path="src/Morpheus.Dominio/Morpheus.Dominio.csproj" />
+    <Project Path="src/Morpheus.Infraestrutura/Morpheus.Infraestrutura.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Morpheus.Testes.Unitarios/Morpheus.Testes.Unitarios.csproj" />
+  </Folder>
+</Solution>
