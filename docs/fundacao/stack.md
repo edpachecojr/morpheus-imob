@@ -1,12 +1,11 @@
 # Stack
 
-> **Estado: EM ABERTO.** Nenhuma stack foi escolhida.
+> **Estado: DECIDIDA (backend).** .NET 10 + PostgreSQL, aceita em 2026-07-20.
 > A decisão e os trade-offs avaliados estão em
-> [ADR-0002](../adrs/0002-escolha-de-stack.md), com status *proposto*.
+> [ADR-0002](../adrs/0002-escolha-de-stack.md), com status *aceito*.
 >
-> Esta página é o espelho operacional daquele ADR: quando ele for aceito,
-> preencha as seções abaixo e substitua os `<a definir>` do
-> [CLAUDE.md](../../CLAUDE.md).
+> Esta página é o espelho operacional daquele ADR. O front-end ainda não foi
+> escolhido — será decidido quando a Fase 1 exigir a página de Magic Link.
 
 ## O que a escolha precisa atender
 
@@ -35,23 +34,29 @@ caminho crítico ponta a ponta na candidata favorita:
 Se isso levar mais de dois dias na stack candidata, é sinal. Registre o
 resultado no ADR-0002 e mude o status para *aceito*.
 
-## A preencher quando decidido
+## Decisão (backend)
 
 ```
-Linguagem / runtime:
-Framework web / API:
-Camada de dados / migrações:
-Fila e agendador:
-Storage de objetos:
-Autenticação (biblioteca):
-Testes (runner + fakes de I/O):
-Formatador / linter:
-Comando único da suíte:     <-- também atualizar em CLAUDE.md
-Hospedagem / deploy:
+Linguagem / runtime:        .NET 10 (C#)
+Framework web / API:        ASP.NET Core (Minimal API)
+Camada de dados / migrações: EF Core 10 + Npgsql (escrita e migrações);
+                             Dapper (leitura performática)
+Fila e agendador:           a definir (Fase 0 — E1-F0-H4, ainda não implementado)
+Storage de objetos:         a definir (entra na Fase 1, com o Dossiê)
+Autenticação (biblioteca):  IdentityCore (sessão do painel); Magic Link próprio
+Testes (runner + fakes):    xUnit; fakes nomeados escritos à mão (sem lib de mock)
+Formatador / linter:        dotnet format
+Comando único da suíte:     dotnet test (em morpheus-core/)
+Hospedagem / deploy:        a definir
+Banco:                      PostgreSQL 17
 ```
+
+O que ainda está aberto (fila/agendador, storage, deploy, front-end) não bloqueia
+a fundação de multi-tenancy e será fechado na fase que primeiro exigir cada peça.
 
 ## Registro de mudanças
 
 | Data | Mudança |
 | --- | --- |
 | 2026-07-20 | Página criada; decisão deliberadamente adiada. Documentar a ausência da decisão evita que ela seja tomada por acidente, no primeiro commit, sem discussão |
+| 2026-07-20 | Backend decidido: .NET 10 + PostgreSQL, EF Core + Dapper, IdentityCore. Fila, storage, deploy e front-end seguem em aberto |

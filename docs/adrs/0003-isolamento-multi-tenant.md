@@ -25,6 +25,35 @@ O `tenant_id` do contexto vem sempre da identidade autenticada (sessão, magic
 link, payload do job ou resolução do webhook), nunca de parâmetro da
 requisição. Consulta sem tenant no contexto não retorna dado.
 
+## Emenda — mecanismo de imposição adotado (2026-07-20)
+
+Com a stack decidida ([ADR-0002](0002-escolha-de-stack.md): .NET 10 + EF Core +
+Dapper), a **defesa aceita é o filtro explícito imposto por construção**, e não a
+RLS do PostgreSQL. A entidade de tenant chama-se `Organizacao`; a coluna de
+vínculo é `organizacao_id`, indexada em toda tabela de negócio.
+
+O ponto-chave é que "filtro explícito" aqui **não** é o `WHERE tenant_id = ?`
+manual que a tabela de alternativas abaixo reprova. Ele é estrutural:
+
+- **Leitura** só existe através de um repositório/consulta que injeta o filtro
+  (`FiltroDaOrganizacao.DaOrganizacao` no EF; cláusula `organizacao_id =
+  @OrganizacaoId` obrigatória no SQL Dapper, coberta por teste). Não há caminho
+  de leitura que dispense o filtro — esquecê-lo exige contornar deliberadamente.
+- **Escrita** passa por um interceptor de `SaveChanges` que carimba a organização
+  do contexto e rejeita vínculo divergente. Sem contexto (job/bootstrap), exige
+  vínculo explícito — nunca grava "global".
+- **Não** se usa query filter global no model creating: o filtro é explícito e
+  auditável em cada consulta, mas não depende da disciplina de quem a escreve.
+
+Isso satisfaz o espírito da decisão ("o caminho seguro é o caminho padrão") sem
+acoplar o isolamento à conexão de banco. A **RLS do PostgreSQL permanece
+disponível como backstop de defesa em profundidade** e será adotada se o modelo
+de ameaça ou uma exigência de cliente pedir — sem desmontar o mecanismo atual.
+
+Por que sem RLS agora: a RLS acopla o isolamento à gestão de sessão de conexão
+(`SET LOCAL`), custo que só se paga quando a defesa em profundidade for
+requisito, não hipótese. A porta fica aberta.
+
 ## Alternativas consideradas
 
 | Alternativa | Por que não |

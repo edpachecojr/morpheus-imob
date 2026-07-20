@@ -1,7 +1,7 @@
 # ADR-0002 — Escolha de stack
 
-**Status:** **Proposto** — nenhuma opção foi escolhida
-**Data:** 2026-07-20
+**Status:** **Aceito** — .NET 10 + PostgreSQL (backend)
+**Data:** 2026-07-20 (proposto e aceito no mesmo dia)
 **Bloqueia:** todo desenvolvimento (D4 do [PRD](../prd.md))
 
 ## Contexto
@@ -20,13 +20,32 @@ distribuída.
 
 ## Decisão
 
-**Adiada deliberadamente.** Este ADR permanece *proposto* até que uma spike
-prove o caminho crítico ponta a ponta numa candidata.
+**Backend em .NET 10 com PostgreSQL** — ASP.NET Core (Minimal API), EF Core para
+escrita e migrações, Dapper para leitura performática, IdentityCore para a sessão
+do painel. O front-end segue em aberto até a Fase 1 exigir a página de Magic Link.
 
-O critério de decisão é o descrito em [stack.md](../fundacao/stack.md):
-receber webhook → enfileirar job → job chama serviço externo falso → persiste
-com tenant correto → página mobile lê o resultado, tudo com teste automatizado
-e sem rede. Se levar mais de dois dias, a candidata está avisando algo.
+Esta opção **não estava entre as quatro originais** (A–D). Foi escolhida por
+atender diretamente ao ponto que reprovou a opção D (Rails/Django): tipagem
+forte e explícita, sem `any` nem dicionário genérico como contrato — a regra do
+CLAUDE.md que as batteries-included de linguagem dinâmica não respeitam. Sobre as
+demais candidatas: mantém uma só linguagem no backend (contra o custo mental da
+opção C), tem ecossistema maduro para jobs, OAuth Google e Meta (contra a
+imaturidade de backend Dart da opção B), e não impõe web pesado para o Magic Link
+(o front-end fica livre para uma escolha leve, ao contrário do Flutter Web da B).
+
+O PostgreSQL atende ao [ADR-0003](0003-isolamento-multi-tenant.md): oferece RLS
+como backstop disponível se o isolamento estrutural na aplicação precisar de
+defesa em profundidade.
+
+### Sobre a spike
+
+O critério original — webhook → fila → job → serviço externo falso →
+persistência com tenant → leitura mobile, tudo testado sem rede — **não foi
+executado como spike isolada**: a fila/agendador (E1-F0-H4) e o caminho de
+webhook ainda não existem. O que foi provado nesta fundação é o coração do
+requisito 4 (isolamento por tenant na camada de dados) com teste automatizado
+sem rede. O restante do caminho crítico será validado ao implementar a fila;
+se algo ali reprovar a stack, este ADR ganha um sucessor — não um contorno.
 
 ## Alternativas consideradas
 

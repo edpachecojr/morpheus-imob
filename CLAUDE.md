@@ -53,7 +53,7 @@ inteligente que zera o tempo de primeira resposta.
 
 ## Testes
 
-- **Comando único para rodar a suíte:** `<a definir com a stack>`.
+- **Comando único para rodar a suíte:** `dotnet test` (a partir de `morpheus-core/`).
 - **Toda função nova ganha teste. Toda correção de bug ganha teste de regressão.**
 - **Mocke I/O externo** (API, banco, sistema de arquivos) com classes fake
   nomeadas — não com stubs inline.
@@ -81,9 +81,24 @@ inteligente que zera o tempo de primeira resposta.
 - Módulos pequenos e focados em vez de arquivos-deus.
 - Caminhos previsíveis e consistentes.
 
-> **A definir em conjunto.** A convenção de pastas deste projeto ainda não foi
-> fechada — será construída junto com a escolha de stack e documentada aqui.
-> Até lá, não improvise estrutura nova sem alinhar.
+O backend vive em `morpheus-core/`, com solução .NET em camadas:
+
+```
+morpheus-core/
+  src/
+    Morpheus.Dominio         Entidades, contratos e regras puras (sem SDK)
+    Morpheus.Aplicacao       Casos de uso, contexto e cache de organização
+    Morpheus.Infraestrutura  EF Core, Dapper, Identity, cache, isolamento
+    Morpheus.Api             Host HTTP, validação de ambiente, endpoints
+  tests/
+    Morpheus.Testes.Unitarios  Testes unitários (sem banco, sem rede)
+```
+
+- Dependências apontam sempre para dentro: `Api → Infraestrutura → Aplicacao →
+  Dominio`. O domínio não referencia SDK de terceiros.
+- Um arquivo por tipo público; pastas por agregado (`Organizacoes`, `Imoveis`,
+  `Usuarios`), não por tipo técnico.
+- Não improvise projeto ou camada nova sem alinhar.
 
 ## Commits
 
