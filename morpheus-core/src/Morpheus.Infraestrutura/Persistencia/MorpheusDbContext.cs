@@ -29,5 +29,6 @@ public sealed class MorpheusDbContext : IdentityDbContext<UsuarioDaOrganizacao, 
         construtor.ApplyConfiguration(new ConfiguracaoDeOrganizacao());
         construtor.ApplyConfiguration(new ConfiguracaoDeImovel());
         construtor.ApplyConfiguration(new ConfiguracaoDeUsuarioDaOrganizacao());
+        ConfiguracaoDasTabelasDaIdentidade.Aplicar(construtor);
     }
 }

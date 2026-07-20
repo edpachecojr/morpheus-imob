@@ -15,10 +15,10 @@ namespace Morpheus.Infraestrutura.Organizacoes;
 /// </summary>
 public sealed class ConsultaDaOrganizacaoDoUsuarioComDapper : IConsultaDaOrganizacaoDoUsuario
 {
-    // A tabela do IdentityCore mantém o nome PascalCase (exige aspas no Postgres);
-    // as colunas seguem a convenção snake_case do restante do schema.
+    // Tabela e colunas seguem a convenção snake_case do schema; o mapeamento do
+    // store do Identity para "usuarios" está em ConfiguracaoDeUsuarioDaOrganizacao.
     private const string BuscarOrganizacaoDoUsuario =
-        """SELECT organizacao_id FROM "AspNetUsers" WHERE id = @UsuarioId""";
+        "SELECT organizacao_id FROM usuarios WHERE id = @UsuarioId";
 
     private readonly IFabricaDeConexao _fabrica;
 

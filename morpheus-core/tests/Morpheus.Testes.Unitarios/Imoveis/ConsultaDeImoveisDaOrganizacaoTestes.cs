@@ -13,10 +13,10 @@ public sealed class ConsultaDeImoveisDaOrganizacaoTestes
     }
 
     [Fact]
-    public void Sql_de_listagem_le_da_tabela_imovel()
+    public void Sql_de_listagem_le_da_tabela_imoveis()
     {
         var sql = ConsultaDeImoveisDaOrganizacao.ListarResumoPorOrganizacao();
 
-        Assert.Contains("FROM imovel", sql);
+        Assert.Contains("FROM imoveis", sql);
     }
 }

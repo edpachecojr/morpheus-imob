@@ -9,6 +9,11 @@ internal sealed class ConfiguracaoDeUsuarioDaOrganizacao : IEntityTypeConfigurat
 {
     public void Configure(EntityTypeBuilder<UsuarioDaOrganizacao> usuario)
     {
+        // Substitui o nome padrão "AspNetUsers" do IdentityCore pela convenção do
+        // schema (plural, snake_case). As demais tabelas do Identity são mapeadas
+        // em ConfiguracaoDasTabelasDaIdentidade.
+        usuario.ToTable("usuarios");
+
         usuario.Property(u => u.OrganizacaoId).IsRequired();
         usuario.Property(u => u.NomeCompleto).HasMaxLength(200).IsRequired();
         usuario.Property(u => u.Papel).HasConversion<string>().HasMaxLength(30).IsRequired();

@@ -45,13 +45,13 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasColumnName("normalized_name");
 
                     b.HasKey("Id")
-                        .HasName("pk_asp_net_roles");
+                        .HasName("pk_roles");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles", (string)null);
+                    b.ToTable("roles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -76,12 +76,12 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasColumnName("role_id");
 
                     b.HasKey("Id")
-                        .HasName("pk_asp_net_role_claims");
+                        .HasName("pk_role_claims");
 
                     b.HasIndex("RoleId")
-                        .HasDatabaseName("ix_asp_net_role_claims_role_id");
+                        .HasDatabaseName("ix_role_claims_role_id");
 
-                    b.ToTable("AspNetRoleClaims", (string)null);
+                    b.ToTable("role_claims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -106,12 +106,12 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasColumnName("user_id");
 
                     b.HasKey("Id")
-                        .HasName("pk_asp_net_user_claims");
+                        .HasName("pk_user_claims");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("ix_asp_net_user_claims_user_id");
+                        .HasDatabaseName("ix_user_claims_user_id");
 
-                    b.ToTable("AspNetUserClaims", (string)null);
+                    b.ToTable("user_claims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
@@ -133,12 +133,12 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasColumnName("user_id");
 
                     b.HasKey("LoginProvider", "ProviderKey")
-                        .HasName("pk_asp_net_user_logins");
+                        .HasName("pk_user_logins");
 
                     b.HasIndex("UserId")
-                        .HasDatabaseName("ix_asp_net_user_logins_user_id");
+                        .HasDatabaseName("ix_user_logins_user_id");
 
-                    b.ToTable("AspNetUserLogins", (string)null);
+                    b.ToTable("user_logins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
@@ -152,12 +152,12 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasColumnName("role_id");
 
                     b.HasKey("UserId", "RoleId")
-                        .HasName("pk_asp_net_user_roles");
+                        .HasName("pk_user_roles");
 
                     b.HasIndex("RoleId")
-                        .HasDatabaseName("ix_asp_net_user_roles_role_id");
+                        .HasDatabaseName("ix_user_roles_role_id");
 
-                    b.ToTable("AspNetUserRoles", (string)null);
+                    b.ToTable("user_roles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -179,9 +179,9 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasColumnName("value");
 
                     b.HasKey("UserId", "LoginProvider", "Name")
-                        .HasName("pk_asp_net_user_tokens");
+                        .HasName("pk_user_tokens");
 
-                    b.ToTable("AspNetUserTokens", (string)null);
+                    b.ToTable("user_tokens", (string)null);
                 });
 
             modelBuilder.Entity("Morpheus.Dominio.Imoveis.Imovel", b =>
@@ -212,16 +212,16 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasColumnName("organizacao_id");
 
                     b.HasKey("Id")
-                        .HasName("pk_imovel");
+                        .HasName("pk_imoveis");
 
                     b.HasIndex("OrganizacaoId")
-                        .HasDatabaseName("ix_imovel_organizacao_id");
+                        .HasDatabaseName("ix_imoveis_organizacao_id");
 
                     b.HasIndex("OrganizacaoId", "CodigoDeReferencia")
                         .IsUnique()
-                        .HasDatabaseName("ix_imovel_organizacao_id_codigo_de_referencia");
+                        .HasDatabaseName("ix_imoveis_organizacao_id_codigo_de_referencia");
 
-                    b.ToTable("imovel", (string)null);
+                    b.ToTable("imoveis", (string)null);
                 });
 
             modelBuilder.Entity("Morpheus.Dominio.Organizacoes.Organizacao", b =>
@@ -242,9 +242,9 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasColumnName("nome");
 
                     b.HasKey("Id")
-                        .HasName("pk_organizacao");
+                        .HasName("pk_organizacoes");
 
-                    b.ToTable("organizacao", (string)null);
+                    b.ToTable("organizacoes", (string)null);
                 });
 
             modelBuilder.Entity("Morpheus.Infraestrutura.Identidade.UsuarioDaOrganizacao", b =>
@@ -332,7 +332,7 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasColumnName("user_name");
 
                     b.HasKey("Id")
-                        .HasName("pk_asp_net_users");
+                        .HasName("pk_usuarios");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -342,9 +342,9 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasDatabaseName("UserNameIndex");
 
                     b.HasIndex("OrganizacaoId")
-                        .HasDatabaseName("ix_asp_net_users_organizacao_id");
+                        .HasDatabaseName("ix_usuarios_organizacao_id");
 
-                    b.ToTable("AspNetUsers", (string)null);
+                    b.ToTable("usuarios", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -354,7 +354,7 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_asp_net_role_claims_asp_net_roles_role_id");
+                        .HasConstraintName("fk_role_claims_roles_role_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
@@ -364,7 +364,7 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_asp_net_user_claims_asp_net_users_user_id");
+                        .HasConstraintName("fk_user_claims_usuarios_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
@@ -374,7 +374,7 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_asp_net_user_logins_asp_net_users_user_id");
+                        .HasConstraintName("fk_user_logins_usuarios_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
@@ -384,14 +384,14 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_asp_net_user_roles_asp_net_roles_role_id");
+                        .HasConstraintName("fk_user_roles_roles_role_id");
 
                     b.HasOne("Morpheus.Infraestrutura.Identidade.UsuarioDaOrganizacao", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_asp_net_user_roles_asp_net_users_user_id");
+                        .HasConstraintName("fk_user_roles_usuarios_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
@@ -401,7 +401,7 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_asp_net_user_tokens_asp_net_users_user_id");
+                        .HasConstraintName("fk_user_tokens_usuarios_user_id");
                 });
 
             modelBuilder.Entity("Morpheus.Dominio.Imoveis.Imovel", b =>
@@ -411,7 +411,7 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasForeignKey("OrganizacaoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_imovel_organizacao_organizacao_id");
+                        .HasConstraintName("fk_imoveis_organizacoes_organizacao_id");
                 });
 
             modelBuilder.Entity("Morpheus.Infraestrutura.Identidade.UsuarioDaOrganizacao", b =>
@@ -421,7 +421,7 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                         .HasForeignKey("OrganizacaoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired()
-                        .HasConstraintName("fk_asp_net_users_organizacao_organizacao_id");
+                        .HasConstraintName("fk_usuarios_organizacoes_organizacao_id");
                 });
 #pragma warning restore 612, 618
         }

@@ -13,7 +13,20 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "AspNetRoles",
+                name: "organizacoes",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    nome = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    criada_em = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_organizacoes", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "roles",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -23,45 +36,32 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_roles", x => x.id);
+                    table.PrimaryKey("pk_roles", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "organizacao",
+                name: "imoveis",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
-                    nome = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    criada_em = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                    codigo_de_referencia = table.Column<string>(type: "character varying(60)", maxLength: 60, nullable: false),
+                    endereco = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
+                    cadastrado_em = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    organizacao_id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_organizacao", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetRoleClaims",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    role_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    claim_type = table.Column<string>(type: "text", nullable: true),
-                    claim_value = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_asp_net_role_claims", x => x.id);
+                    table.PrimaryKey("pk_imoveis", x => x.id);
                     table.ForeignKey(
-                        name: "fk_asp_net_role_claims_asp_net_roles_role_id",
-                        column: x => x.role_id,
-                        principalTable: "AspNetRoles",
+                        name: "fk_imoveis_organizacoes_organizacao_id",
+                        column: x => x.organizacao_id,
+                        principalTable: "organizacoes",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUsers",
+                name: "usuarios",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -85,38 +85,38 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_users", x => x.id);
+                    table.PrimaryKey("pk_usuarios", x => x.id);
                     table.ForeignKey(
-                        name: "fk_asp_net_users_organizacao_organizacao_id",
+                        name: "fk_usuarios_organizacoes_organizacao_id",
                         column: x => x.organizacao_id,
-                        principalTable: "organizacao",
+                        principalTable: "organizacoes",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
-                name: "imovel",
+                name: "role_claims",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    codigo_de_referencia = table.Column<string>(type: "character varying(60)", maxLength: 60, nullable: false),
-                    endereco = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
-                    cadastrado_em = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    organizacao_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    role_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    claim_type = table.Column<string>(type: "text", nullable: true),
+                    claim_value = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_imovel", x => x.id);
+                    table.PrimaryKey("pk_role_claims", x => x.id);
                     table.ForeignKey(
-                        name: "fk_imovel_organizacao_organizacao_id",
-                        column: x => x.organizacao_id,
-                        principalTable: "organizacao",
+                        name: "fk_role_claims_roles_role_id",
+                        column: x => x.role_id,
+                        principalTable: "roles",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUserClaims",
+                name: "user_claims",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
@@ -127,17 +127,17 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_user_claims", x => x.id);
+                    table.PrimaryKey("pk_user_claims", x => x.id);
                     table.ForeignKey(
-                        name: "fk_asp_net_user_claims_asp_net_users_user_id",
+                        name: "fk_user_claims_usuarios_user_id",
                         column: x => x.user_id,
-                        principalTable: "AspNetUsers",
+                        principalTable: "usuarios",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUserLogins",
+                name: "user_logins",
                 columns: table => new
                 {
                     login_provider = table.Column<string>(type: "text", nullable: false),
@@ -147,17 +147,17 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_user_logins", x => new { x.login_provider, x.provider_key });
+                    table.PrimaryKey("pk_user_logins", x => new { x.login_provider, x.provider_key });
                     table.ForeignKey(
-                        name: "fk_asp_net_user_logins_asp_net_users_user_id",
+                        name: "fk_user_logins_usuarios_user_id",
                         column: x => x.user_id,
-                        principalTable: "AspNetUsers",
+                        principalTable: "usuarios",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUserRoles",
+                name: "user_roles",
                 columns: table => new
                 {
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -165,23 +165,23 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_user_roles", x => new { x.user_id, x.role_id });
+                    table.PrimaryKey("pk_user_roles", x => new { x.user_id, x.role_id });
                     table.ForeignKey(
-                        name: "fk_asp_net_user_roles_asp_net_roles_role_id",
+                        name: "fk_user_roles_roles_role_id",
                         column: x => x.role_id,
-                        principalTable: "AspNetRoles",
+                        principalTable: "roles",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "fk_asp_net_user_roles_asp_net_users_user_id",
+                        name: "fk_user_roles_usuarios_user_id",
                         column: x => x.user_id,
-                        principalTable: "AspNetUsers",
+                        principalTable: "usuarios",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUserTokens",
+                name: "user_tokens",
                 columns: table => new
                 {
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -191,66 +191,66 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_asp_net_user_tokens", x => new { x.user_id, x.login_provider, x.name });
+                    table.PrimaryKey("pk_user_tokens", x => new { x.user_id, x.login_provider, x.name });
                     table.ForeignKey(
-                        name: "fk_asp_net_user_tokens_asp_net_users_user_id",
+                        name: "fk_user_tokens_usuarios_user_id",
                         column: x => x.user_id,
-                        principalTable: "AspNetUsers",
+                        principalTable: "usuarios",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "ix_asp_net_role_claims_role_id",
-                table: "AspNetRoleClaims",
+                name: "ix_imoveis_organizacao_id",
+                table: "imoveis",
+                column: "organizacao_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_imoveis_organizacao_id_codigo_de_referencia",
+                table: "imoveis",
+                columns: new[] { "organizacao_id", "codigo_de_referencia" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_role_claims_role_id",
+                table: "role_claims",
                 column: "role_id");
 
             migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
-                table: "AspNetRoles",
+                table: "roles",
                 column: "normalized_name",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_asp_net_user_claims_user_id",
-                table: "AspNetUserClaims",
+                name: "ix_user_claims_user_id",
+                table: "user_claims",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_asp_net_user_logins_user_id",
-                table: "AspNetUserLogins",
+                name: "ix_user_logins_user_id",
+                table: "user_logins",
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_asp_net_user_roles_role_id",
-                table: "AspNetUserRoles",
+                name: "ix_user_roles_role_id",
+                table: "user_roles",
                 column: "role_id");
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
-                table: "AspNetUsers",
+                table: "usuarios",
                 column: "normalized_email");
 
             migrationBuilder.CreateIndex(
-                name: "ix_asp_net_users_organizacao_id",
-                table: "AspNetUsers",
+                name: "ix_usuarios_organizacao_id",
+                table: "usuarios",
                 column: "organizacao_id");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
-                table: "AspNetUsers",
+                table: "usuarios",
                 column: "normalized_user_name",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "ix_imovel_organizacao_id",
-                table: "imovel",
-                column: "organizacao_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_imovel_organizacao_id_codigo_de_referencia",
-                table: "imovel",
-                columns: new[] { "organizacao_id", "codigo_de_referencia" },
                 unique: true);
         }
 
@@ -258,31 +258,31 @@ namespace Morpheus.Infraestrutura.Persistencia.Migracoes
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AspNetRoleClaims");
+                name: "imoveis");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserClaims");
+                name: "role_claims");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserLogins");
+                name: "user_claims");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserRoles");
+                name: "user_logins");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserTokens");
+                name: "user_roles");
 
             migrationBuilder.DropTable(
-                name: "imovel");
+                name: "user_tokens");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoles");
+                name: "roles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "usuarios");
 
             migrationBuilder.DropTable(
-                name: "organizacao");
+                name: "organizacoes");
         }
     }
 }

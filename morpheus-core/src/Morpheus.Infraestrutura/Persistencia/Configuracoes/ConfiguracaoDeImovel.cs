@@ -9,7 +9,7 @@ internal sealed class ConfiguracaoDeImovel : IEntityTypeConfiguration<Imovel>
 {
     public void Configure(EntityTypeBuilder<Imovel> imovel)
     {
-        imovel.ToTable("imovel");
+        imovel.ToTable("imoveis");
         imovel.HasKey(i => i.Id);
         imovel.Property(i => i.CodigoDeReferencia).HasMaxLength(60).IsRequired();
         imovel.Property(i => i.Endereco).HasMaxLength(300).IsRequired();

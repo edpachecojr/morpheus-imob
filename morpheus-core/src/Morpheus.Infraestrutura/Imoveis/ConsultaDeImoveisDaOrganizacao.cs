@@ -14,7 +14,7 @@ public static class ConsultaDeImoveisDaOrganizacao
         SELECT id AS "Id",
                codigo_de_referencia AS "CodigoDeReferencia",
                endereco AS "Endereco"
-        FROM imovel
+        FROM imoveis
         WHERE organizacao_id = @OrganizacaoId
         ORDER BY codigo_de_referencia;
         """;

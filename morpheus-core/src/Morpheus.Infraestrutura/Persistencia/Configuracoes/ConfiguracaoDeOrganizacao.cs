@@ -8,7 +8,7 @@ internal sealed class ConfiguracaoDeOrganizacao : IEntityTypeConfiguration<Organ
 {
     public void Configure(EntityTypeBuilder<Organizacao> organizacao)
     {
-        organizacao.ToTable("organizacao");
+        organizacao.ToTable("organizacoes");
         organizacao.HasKey(o => o.Id);
         organizacao.Property(o => o.Nome).HasMaxLength(200).IsRequired();
         organizacao.Property(o => o.CriadaEm).IsRequired();
