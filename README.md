@@ -31,8 +31,21 @@ transparência para o proprietário — fidelizando a carteira de imóveis.
 
 ## Status
 
-Em definição. A stack técnica e a convenção de estrutura de diretórios ainda
-serão fechadas.
+Fase de fundação. A stack técnica e a convenção de estrutura de diretórios ainda
+serão fechadas — ver [ADR-0002](./docs/adrs/0002-escolha-de-stack.md).
+
+## Documentação
+
+A pasta **[docs/](./docs/README.md)** é a wiki viva do projeto:
+
+| | |
+| --- | --- |
+| [PRD](./docs/prd.md) | Problema, objetivos, escopo e KPIs |
+| [Roadmap](./docs/roadmap.md) | MVP e visão completa, em ordem |
+| [Backlog](./docs/backlog/README.md) | Épicos, features e estórias de usuário |
+| [Domínio](./docs/dominio/glossario.md) | Linguagem ubíqua e modelo de domínio |
+| [Fundação](./docs/fundacao/README.md) | Stack, multi-tenancy, auth, ambientes |
+| [ADRs](./docs/adrs/README.md) | Decisões arquiteturais e seus porquês |
 
 ## Desenvolvimento
 
