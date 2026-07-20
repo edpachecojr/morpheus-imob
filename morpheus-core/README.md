@@ -29,6 +29,7 @@ src/
   Morpheus.Api             Host HTTP, validação de ambiente, /health
 tests/
   Morpheus.Testes.Unitarios  Testes unitários (sem banco, sem rede)
+  Morpheus.Testes.Integracao Testes de integração (Postgres real via Testcontainers)
 ```
 
 ## Isolamento por organização
@@ -77,3 +78,6 @@ dotnet test
 ```
 
 Os testes unitários rodam em milissegundos, sem banco e sem rede (F.I.R.S.T.).
+Os testes de integração sobem um PostgreSQL efêmero via Testcontainers e provam
+o isolamento por organização contra o banco real — por isso **exigem Docker**
+(o mesmo pré-requisito de subir o ambiente local).

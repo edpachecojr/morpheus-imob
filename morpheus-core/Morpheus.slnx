@@ -7,5 +7,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Morpheus.Testes.Unitarios/Morpheus.Testes.Unitarios.csproj" />
+    <Project Path="tests/Morpheus.Testes.Integracao/Morpheus.Testes.Integracao.csproj" />
   </Folder>
 </Solution>
