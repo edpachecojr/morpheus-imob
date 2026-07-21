@@ -16,10 +16,17 @@ tratá-los com o mesmo mecanismo seria o erro estrutural mais caro do projeto:
 - **Sessão opaca no servidor**, em cookie `HttpOnly`, `Secure`, `SameSite=Lax`.
   Não JWT sem estado: precisamos revogar sessão na hora (usuário desligado,
   aparelho perdido) e JWT stateless torna isso um problema de invalidação.
+  Implementação em [ADR-0011](../adrs/0011-sessao-opaca-no-servidor.md).
 - Senha com hash de **Argon2id** (ou bcrypt com custo adequado). Nunca SHA.
 - **Login com Google** pelo padrão OIDC. O e-mail verificado do provedor
   vincula à conta existente; e-mail não verificado nunca vincula.
-- Rate limit por IP e por conta no login, com atraso progressivo.
+- Rate limit **por IP** (teto por janela) e **por conta** (bloqueio por
+  tentativas malsucedidas) no login.
+  **Sem atraso progressivo**, por decisão revista na implementação: um atraso
+  proporcional às falhas da conta responde mais rápido para e-mail inexistente,
+  que não tem contador de falhas — e reintroduz justamente o oráculo de
+  enumeração que a resposta genérica existe para fechar. As duas camadas de
+  limite cobrem o mesmo risco sem esse efeito colateral.
 - **Resposta genérica** em falha de login e em recuperação de senha: nunca
   revelar se o e-mail existe.
 - Recuperação de senha por token de uso único, expiração de 30 min, invalidado

@@ -27,7 +27,7 @@ src/
   Morpheus.Dominio         Entidades, contratos e regras puras (sem SDK)
   Morpheus.Aplicacao       Casos de uso, contexto e cache de organização
   Morpheus.Infraestrutura  EF Core, Dapper, Identity, cache, isolamento
-  Morpheus.Api             Host HTTP, validação de ambiente, /health
+  Morpheus.Api             Host HTTP, endpoints, autenticação e autorização
 tests/
   Morpheus.Testes.Unitarios  Testes unitários (sem banco, sem rede)
   Morpheus.Testes.Integracao Testes de integração (Postgres real via Testcontainers)
@@ -40,12 +40,54 @@ construção** (ver [ADR-0003](../docs/adrs/0003-isolamento-multi-tenant.md)):
 
 - Leitura EF passa por `FiltroDaOrganizacao.DaOrganizacao`; leitura Dapper
   carrega `WHERE organizacao_id = @OrganizacaoId` sempre explícito.
-- Escrita é carimbada/validada pelo `InterceptorDeEscritaPorOrganizacao`.
+- Escrita nasce vinculada: a entidade recebe um `OrganizacaoDona` na própria
+  factory de domínio — definir o tenant é da aplicação, não da persistência.
 - A organização do usuário autenticado é resolvida uma vez e mantida em cache
   (`ResolvedorDaOrganizacaoDoUsuario`).
 - `organizacao_id` é indexado em toda tabela de negócio.
 
 Não há query filter global no model creating — o filtro é explícito e estrutural.
+Nenhum contrato de requisição da API tem campo de organização ou tenant, e um
+teste de reflexão sobre o assembly garante que continue assim.
+
+## Endpoints
+
+Minimal API, sem controllers. Cada grupo coeso de rotas implementa `IEndpoint` e
+é listado **à mão** em `MapeamentoDeEndpoints` — varredura de assembly publicaria
+rota que ninguém pretendia publicar e esconderia o inventário de quem revisa
+segurança. O `Program.cs` fica com a composição, não com rotas.
+
+| Rota | Acesso |
+| --- | --- |
+| `GET /health` | anônima |
+| `POST /contas` | anônima, com limite por origem |
+| `POST /sessoes` | anônima, com limite por origem |
+| `DELETE /sessoes/atual` | sessão válida |
+| `POST /senhas/recuperacoes` · `POST /senhas/redefinicoes` | anônimas, com limite por origem |
+| `GET /imoveis` | permissão `imovel.ler` |
+| `GET /organizacao/usuarios` | permissão `usuario.gerenciar` |
+
+Toda rota declara `RequerPermissao(...)`, `RequerApenasSessao()` ou
+`AllowAnonymous()`. Rota que esquecer as três **derruba o processo na subida**,
+com o nome dela na mensagem.
+
+## Autenticação e autorização
+
+- **Sessão opaca no servidor** ([ADR-0011](../docs/adrs/0011-sessao-opaca-no-servidor.md)):
+  o cookie `morpheus_sessao` carrega só um identificador; o ticket vive na tabela
+  `sessoes`, atrás de `ITicketStore`. Logout apaga a linha do aparelho que saiu;
+  troca de senha apaga todas as do usuário.
+- **Senha em Argon2id** (19 MiB, 2 passagens — OWASP 2025), substituindo o PBKDF2
+  padrão do Identity, com regravação automática quando o custo sobe.
+- **Recusa de login indistinguível**: e-mail inexistente, senha errada e conta
+  bloqueada devolvem a mesma resposta e derivam uma chave Argon2id antes de
+  responder, para não vazar a existência da conta pelo tempo.
+- **Limites**: por origem nas rotas de autenticação (`LimiteDeAutenticacao__RequisicoesPorMinuto`,
+  padrão 20) e por conta pelo bloqueio do Identity (5 erros → 15 min).
+- **Papéis e permissões no Identity** ([ADR-0010](../docs/adrs/0010-papeis-e-permissoes-no-identity.md)):
+  papel em `user_roles`, permissão em `role_claims`, semeadas por migração a
+  partir da `MatrizDePermissoes`. A decisão passa sempre pelo ponto único
+  `IAutorizadorDeAcesso.Pode(usuario, permissao)` — nunca por comparação de papel.
 
 ## Subir o ambiente local
 
@@ -95,9 +137,11 @@ dotnet test
 ```
 
 Os testes unitários rodam em milissegundos, sem banco e sem rede (F.I.R.S.T.).
-Os testes de integração sobem um PostgreSQL efêmero via Testcontainers e provam
-o isolamento por organização contra o banco real — por isso **exigem Docker**
-(o mesmo pré-requisito de subir o ambiente local).
+Os testes de integração sobem um PostgreSQL efêmero via Testcontainers e provam,
+contra o banco real e pelo host real, o isolamento por organização, o cadastro
+transacional de conta e tenant, o login com sessão revogável e os testes
+negativos de autorização — por isso **exigem Docker** (o mesmo pré-requisito de
+subir o ambiente local).
 
 ## CI
 
@@ -116,9 +160,10 @@ localmente com `dotnet test` (que executa a suíte inteira).
 
 Toda entidade herda de `EntidadeBase`: identidade, auditoria (`DadosDeAuditoria`,
 com `CriadoEm`/`AtualizadoEm`) e uma lista de eventos de domínio. Uma ação de
-escrita (`Imovel.Cadastrar`, `Organizacao.Fundar`) registra um evento com os
-**dados de negócio completos**. No `SaveChanges`, o `InterceptorDeGravacaoDeOutbox`
-grava esses eventos na tabela `mensagens_outbox` **na mesma transação** do dado —
+escrita (`Imovel.Cadastrar`, `Organizacao.Fundar`, `UsuarioDaOrganizacao.Cadastrar`)
+registra um evento com os **dados de negócio completos**. O `SaveChanges` do
+`MorpheusDbContext` — por override explícito, não por interceptor registrado longe —
+drena esses eventos para a tabela `mensagens_outbox` **na mesma transação** do dado,
 o lado de escrita do Outbox Pattern ([ADR-0009](../docs/adrs/0009-eventos-de-dominio-e-outbox.md)).
 
 A drenagem do outbox (dispatcher, filas, pub/sub) está fora do MVP: a coluna

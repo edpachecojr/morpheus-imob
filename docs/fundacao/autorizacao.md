@@ -7,6 +7,12 @@ O que você pode fazer, uma vez que já sabemos quem é você
 verificação centralizada. Sem ACL por recurso, sem motor de políticas.
 Trade-offs em [ADR-0005](../adrs/0005-rbac-simples.md).
 
+**Onde isso mora:** o papel do usuário fica nas tabelas do IdentityCore
+(`roles`, `user_roles`) e cada permissão é uma claim do papel em `role_claims`,
+semeada por migração a partir da matriz abaixo — que continua sendo a fonte em
+código. Detalhe e trade-offs em
+[ADR-0010](../adrs/0010-papeis-e-permissoes-no-identity.md).
+
 ## Camadas
 
 A autorização é sempre a composição de três perguntas, **nesta ordem**:
@@ -56,6 +62,9 @@ alguém vai esquecer um lugar.
 
 1. **Negar por padrão.** Rota sem verificação explícita é negada, não liberada.
    Isso é configuração de framework, não disciplina de quem escreve a rota.
+   Na prática, duas camadas: política de fallback que exige sessão, e uma
+   verificação na **subida** que derruba o processo citando pelo nome qualquer
+   rota que não declarou permissão, sessão ou anonimato.
 2. **Verificação no servidor, sempre.** Esconder botão é UX, não segurança.
 3. **Um único ponto de decisão** com assinatura tipada — `pode(usuario,
    permissao, recurso)`. Não existe segunda forma de perguntar.

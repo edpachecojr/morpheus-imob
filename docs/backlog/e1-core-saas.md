@@ -82,9 +82,10 @@ sem perder o fato entre gravar e anunciar.
 - **E** o evento carrega o tenant no envelope; outbox sem organização é recusado.
 
 > **✅ Feito:** `EntidadeBase` + value object `DadosDeAuditoria`; eventos
-> `ImovelCadastradoEvento` e `OrganizacaoFundadaEvento`; `InterceptorDeGravacaoDeOutbox`
-> gravando na mesma transação, com o montador puro testado por unidade e a
-> atomicidade provada por teste de integração.
+> `ImovelCadastradoEvento`, `OrganizacaoFundadaEvento` e `UsuarioCadastradoEvento`;
+> override explícito de `SaveChanges` no `MorpheusDbContext` gravando na mesma
+> transação, com o montador puro testado por unidade e a atomicidade provada por
+> teste de integração.
 >
 > **Fora de escopo (estória futura):** dispatcher/publicadores, filas e consumidores,
 > agendador, e as garantias de job (retente com backoff, fila morta com alerta,
@@ -106,7 +107,7 @@ tenants, **para** confiar documentos dos meus clientes à ferramenta.
 - **E** FK apontando para entidade de outro tenant é rejeitada pelo banco.
 - **E** os testes de [multi-tenancy](../fundacao/multi-tenancy.md#testes-obrigatórios) passam integralmente.
 
-### ☐ E1-F1-H2 `[MVP]` · 2 pts — Criação de conta e tenant
+### ✅ E1-F1-H2 `[MVP]` · 2 pts — Criação de conta e tenant
 **Como** corretor autônomo, **quero** criar minha conta, **para** começar a usar
 sem falar com ninguém.
 
@@ -115,6 +116,22 @@ sem falar com ninguém.
 - **E** e-mail já cadastrado retorna mensagem genérica, sem revelar existência.
 - **E** o tenant nasce com configuração padrão utilizável (fuso, janela de
   atendimento padrão).
+
+> **✅ Feito:** `POST /contas` (anônimo, com limite por origem). Organização e
+> usuário dono nascem na **mesma transação** (`IExecucaoTransacional`), com o papel
+> gravado em `user_roles` do Identity. A organização nasce com o nome do fundador e
+> `ConfiguracaoDaOrganizacao.Padrao()` — fuso `America/Sao_Paulo` e janela 9h–18h.
+> Ambos os eventos (`OrganizacaoFundadaEvento`, `UsuarioCadastradoEvento`) entram no
+> outbox na mesma transação.
+>
+> **Anti-enumeração:** cadastro criado, e-mail já existente e **armadilha de robô**
+> (campo `paginaPessoal`, descartado antes de tocar banco ou hash) devolvem `201`
+> com corpo byte a byte idêntico — provado por teste. A força da senha é validada
+> **antes** da checagem de existência, senão a diferença de resposta viraria oráculo
+> de contas.
+>
+> **Pendente (onboarding):** renomear a organização, completar dados de usuário e
+> de organização e confirmar e-mail. Nada disso bloqueia o primeiro uso.
 
 ### ✅ E1-F1-H3 `[MVP]` · 1 pt — Chave única por tenant
 **Como** cliente, **quero** usar meus próprios códigos de referência, **para**
@@ -127,11 +144,12 @@ não depender do que outro cliente já usou.
 
 ---
 
-## E1-F2 — Autenticação — ☐ não iniciada
+## E1-F2 — Autenticação — ◐ em andamento
 
 Regras completas em [autenticacao.md](../fundacao/autenticacao.md).
+Sessão opaca no servidor: [ADR-0011](../adrs/0011-sessao-opaca-no-servidor.md).
 
-### E1-F2-H1 `[MVP]` · 3 pts — Login por e-mail e senha
+### ✅ E1-F2-H1 `[MVP]` · 3 pts — Login por e-mail e senha
 **Como** usuário, **quero** entrar com e-mail e senha, **para** acessar o painel.
 
 - **Dado** credenciais válidas, **quando** eu logar, **então** recebo sessão em
@@ -140,6 +158,26 @@ Regras completas em [autenticacao.md](../fundacao/autenticacao.md).
   resposta, em tempo aproximadamente igual.
 - **E** a senha é armazenada com Argon2id (ou bcrypt de custo adequado).
 - **E** há rate limit por IP e por conta, com atraso progressivo.
+
+> **✅ Feito:** `POST /sessoes` emite cookie `morpheus_sessao` — `HttpOnly`,
+> `SameSite=Lax`, `Secure` fora de desenvolvimento — carregando apenas um
+> identificador opaco; o ticket vive na tabela `sessoes` ([ADR-0011](../adrs/0011-sessao-opaca-no-servidor.md)).
+> Senha com **Argon2id** (19 MiB, 2 passagens, OWASP 2025) substituindo o PBKDF2
+> padrão do Identity, com regravação automática quando o custo sobe.
+>
+> **Tempo igual entre recusas:** os três modos — e-mail inexistente, senha errada e
+> conta bloqueada — derivam uma chave Argon2id antes de responder, inclusive quando
+> não há conta (`ConsumirTempoEquivalenteAsync` contra um hash de referência
+> aleatório do processo). Os códigos de erro internos diferem para o log distinguir
+> ataque de esquecimento; a resposta HTTP é idêntica, provado por teste.
+>
+> **Rate limit:** por origem (janela fixa configurável, padrão 20/min) nas rotas de
+> autenticação, e por conta pelo bloqueio do Identity (5 erros → 15 min). O
+> **atraso progressivo** do texto original foi deliberadamente não implementado: um
+> atraso proporcional às falhas *da conta* responderia mais rápido para e-mail
+> inexistente, que não tem contador — reintroduzindo exatamente o oráculo de
+> enumeração que o critério anterior proíbe. Bloqueio por conta + teto por origem
+> cobrem o mesmo risco sem esse efeito colateral.
 
 ### E1-F2-H2 `[MVP]` · 3 pts — Login com Google
 **Como** corretor, **quero** entrar com minha conta Google, **para** não criar
@@ -150,7 +188,11 @@ mais uma senha.
 - **E** e-mail **não** verificado pelo provedor nunca vincula automaticamente.
 - **E** primeiro login por Google sem cadastro prévio cria conta e tenant.
 
-### E1-F2-H3 `[MVP]` · 2 pts — Recuperação de senha
+> **Adiada por decisão explícita**, para não misturar OIDC com a fundação de
+> sessão. Entra sobre o que já está pronto: o `IUserLoginStore` do Identity e a
+> `ISessaoDoPainel` não mudam.
+
+### ✅ E1-F2-H3 `[MVP]` · 2 pts — Recuperação de senha
 **Como** usuário, **quero** redefinir minha senha, **para** recuperar acesso.
 
 - **Dado** um pedido de recuperação, **quando** enviado, **então** a resposta é
@@ -158,20 +200,36 @@ mais uma senha.
 - **E** o token é de uso único e expira em 30 minutos.
 - **E** trocar a senha invalida todas as outras sessões ativas.
 
-### E1-F2-H4 `[MVP]` · 1 pt — Encerrar sessão
+> **✅ Feito:** `POST /senhas/recuperacoes` responde `202` com o mesmo corpo exista
+> ou não a conta; `POST /senhas/redefinicoes` troca a senha e apaga **todas** as
+> sessões do usuário. Token do provedor do Identity, com `TokenLifespan` de 30 min;
+> o uso único vem do carimbo de segurança, que gira na troca e invalida qualquer
+> token pendente. Token forjado e conta inexistente devolvem resposta idêntica.
+>
+> **Pendente:** o envio real do e-mail. A porta `IEnvioDeEmailDeRecuperacao` está
+> definida e hoje é atendida por `EnvioDeRecuperacaoRegistradoEmLog`, que registra
+> o destinatário mascarado e **nunca o token**. Trocar pelo provedor transacional é
+> registrar outra implementação da porta.
+
+### ✅ E1-F2-H4 `[MVP]` · 1 pt — Encerrar sessão
 - **Dado** uma sessão ativa, **quando** eu sair, **então** ela é revogada no
   servidor e a requisição seguinte recebe 401.
+
+> **✅ Feito:** `DELETE /sessoes/atual` apaga a linha em `sessoes` — revogação de
+> verdade no servidor, não apagar cookie no cliente. Derruba **apenas** o aparelho
+> que saiu; os demais seguem ativos, provado por teste com dois clientes.
 
 ### E1-F2-H5 · 3 pts — MFA por TOTP
 Pós-MVP. Requisito de venda para imobiliária com equipe.
 
 ---
 
-## E1-F3 — Autorização — ☐ não iniciada
+## E1-F3 — Autorização — ◐ em andamento
 
 Matriz de permissões em [autorizacao.md](../fundacao/autorizacao.md).
+Papéis e permissões no Identity: [ADR-0010](../adrs/0010-papeis-e-permissoes-no-identity.md).
 
-### E1-F3-H1 `[MVP]` · 3 pts — Verificação central por permissão nomeada
+### ✅ E1-F3-H1 `[MVP]` · 3 pts — Verificação central por permissão nomeada
 **Como** time, **quero** um único ponto de decisão de permissão, **para** que
 adicionar papel não vire caça a `if` pelo código.
 
@@ -183,17 +241,51 @@ adicionar papel não vire caça a `if` pelo código.
 - **E** `tenant_id` enviado no corpo da requisição é ignorado.
 - **E** toda negação é logada com usuário, permissão e recurso.
 
-### E1-F3-H2 `[MVP]` · 2 pts — Papéis dono e corretor
+> **✅ Feito:** ponto único `IAutorizadorDeAcesso.Pode(usuario, permissao)`, atrás
+> de uma política registrada por permissão do catálogo — política inexistente
+> quebra na **subida**, não em produção. A rota declara com `RequerPermissao(...)`
+> ou `RequerApenasSessao()`; `ValidadorDeDeclaracaoDePermissao` percorre os
+> endpoints na subida e **derruba o processo** citando pelo nome qualquer rota que
+> não declarou nem anonimato — "negar por padrão" virou verificação, não convenção.
+> Sem sessão, 401 em toda rota autenticada (política de fallback).
+>
+> **`tenant_id` do corpo:** nenhum contrato de requisição da API tem campo de
+> organização, tenant, papel ou permissão — provado por teste de reflexão sobre o
+> assembly, o que é mais forte que ignorar em tempo de execução. O tenant sai
+> sempre de `IContextoDaOrganizacaoAtual`.
+>
+> **Negação logada** com id do usuário (nunca e-mail), permissão e rota.
+>
+> **Camada 3 (vínculo)** segue fora — é a E1-F3-H4, pós-MVP.
+
+### ✅ E1-F3-H2 `[MVP]` · 2 pts — Papéis dono e corretor
 - **Dado** os papéis do MVP, **quando** eu consultar as permissões, **então**
   elas conferem com a matriz documentada.
 - **E** existe teste negativo para cada permissão restrita.
 
+> **✅ Feito:** o enum `PapelDoUsuario` foi **removido**; papel vive em
+> `roles`/`user_roles` do Identity e as permissões em `role_claims`, semeadas por
+> migração a partir da `MatrizDePermissoes` ([ADR-0010](../adrs/0010-papeis-e-permissoes-no-identity.md)).
+> Teste negativo por permissão restrita (`usuario.gerenciar`, `faturamento.gerenciar`,
+> `tenant.configurar`, `metricas.ler`) no nível da matriz, e teste de integração com
+> host real provando que o corretor recebe **403** em `/organizacao/usuarios` onde o
+> dono recebe 200.
+
 ### E1-F3-H3 · 3 pts — Gestor, secretária e convite de equipe
 Pós-MVP (Fase 5). Inclui convite por e-mail com aceite e revogação de acesso.
+
+> **Preparado, não entregue.** Acrescentar `gestor` e `secretaria` é uma linha em
+> `PapeisDoUsuario`, uma na `MatrizDePermissoes` e uma migração — nenhum código de
+> rota muda ([ADR-0010](../adrs/0010-papeis-e-permissoes-no-identity.md)). O convite
+> em si (e-mail, aceite, revogação) continua fora do MVP.
 
 ### E1-F3-H4 · 5 pts — Vínculo: corretor vê apenas os próprios registros
 Pós-MVP. Camada 3 da autorização. O campo de responsável já é gravado desde o
 MVP para não exigir migração.
+
+> Fora de escopo por decisão da fundação: no MVP todo usuário do tenant vê tudo do
+> tenant. `IAutorizadorDeAcesso` ganha o parâmetro de recurso quando esta estória
+> entrar — acrescentá-lo agora, ignorado, só daria falsa sensação de cobertura.
 
 ---
 
