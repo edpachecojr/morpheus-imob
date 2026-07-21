@@ -82,6 +82,11 @@ public static class ConfiguracaoDeInfraestrutura
             ServiceDescriptor.Singleton<IPasswordHasher<UsuarioDaOrganizacao>, HashDeSenhaArgon2id>());
         servicos.AddSingleton<SenhaDeReferenciaParaEqualizarTempo>();
 
+        AdicionarServicosDeIdentidade(servicos);
+    }
+
+    private static void AdicionarServicosDeIdentidade(IServiceCollection servicos)
+    {
         servicos.AddScoped<IRegistroDeUsuarios, RegistroDeUsuariosComIdentity>();
         servicos.AddScoped<IDiretorioDeUsuarios, DiretorioDeUsuariosComIdentity>();
         servicos.AddScoped<IVerificadorDeSenha, VerificadorDeSenhaComIdentity>();

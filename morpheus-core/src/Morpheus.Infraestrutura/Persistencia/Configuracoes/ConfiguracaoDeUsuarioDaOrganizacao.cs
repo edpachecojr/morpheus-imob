@@ -22,6 +22,11 @@ internal sealed class ConfiguracaoDeUsuarioDaOrganizacao : IEntityTypeConfigurat
         // antes do commit.
         usuario.Ignore(u => u.EventosDeDominio);
 
+        MapearVinculoComOrganizacao(usuario);
+    }
+
+    private static void MapearVinculoComOrganizacao(EntityTypeBuilder<UsuarioDaOrganizacao> usuario)
+    {
         // Índice do vínculo: a busca "organização do usuário" roda em toda
         // requisição (antes do cache aquecer) e precisa ser barata.
         usuario.HasIndex(u => u.OrganizacaoId);

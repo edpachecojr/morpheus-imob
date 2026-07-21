@@ -12,8 +12,14 @@ internal sealed class ConfiguracaoDeOrganizacao : IEntityTypeConfiguration<Organ
         organizacao.HasKey(o => o.Id);
         organizacao.Property(o => o.Nome).HasMaxLength(200).IsRequired();
 
-        // Configuração operacional (fuso e janela de atendimento) mora nas colunas
-        // da própria organização: é 1-para-1 e nunca consultada sem ela.
+        MapearConfiguracaoOperacional(organizacao);
+        MapearMetadados(organizacao);
+    }
+
+    // Configuração operacional (fuso e janela de atendimento) mora nas colunas
+    // da própria organização: é 1-para-1 e nunca consultada sem ela.
+    private static void MapearConfiguracaoOperacional(EntityTypeBuilder<Organizacao> organizacao)
+    {
         organizacao.OwnsOne(o => o.Configuracao, configuracao =>
         {
             configuracao.Property(c => c.FusoHorario)
@@ -26,7 +32,10 @@ internal sealed class ConfiguracaoDeOrganizacao : IEntityTypeConfiguration<Organ
             configuracao.Navigation(c => c.JanelaDeAtendimento).IsRequired();
         });
         organizacao.Navigation(o => o.Configuracao).IsRequired();
+    }
 
+    private static void MapearMetadados(EntityTypeBuilder<Organizacao> organizacao)
+    {
         // Auditoria mora nas colunas da própria organização (owned, sem tabela à parte).
         ConfiguracaoDeAuditoria.Mapear(organizacao);
 

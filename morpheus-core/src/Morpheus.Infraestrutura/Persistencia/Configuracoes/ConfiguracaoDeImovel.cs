@@ -15,13 +15,22 @@ internal sealed class ConfiguracaoDeImovel : IEntityTypeConfiguration<Imovel>
         imovel.Property(i => i.Endereco).HasMaxLength(300).IsRequired();
         imovel.Property(i => i.OrganizacaoId).IsRequired();
 
+        MapearMetadados(imovel);
+        MapearIndicesEChaves(imovel);
+    }
+
+    private static void MapearMetadados(EntityTypeBuilder<Imovel> imovel)
+    {
         // Auditoria mora nas colunas do próprio imóvel (owned, sem tabela à parte).
         ConfiguracaoDeAuditoria.Mapear(imovel);
 
         // CadastradoEm é projeção de Auditoria.CriadoEm; eventos são transientes.
         imovel.Ignore(i => i.CadastradoEm);
         imovel.Ignore(i => i.EventosDeDominio);
+    }
 
+    private static void MapearIndicesEChaves(EntityTypeBuilder<Imovel> imovel)
+    {
         // Índice do vínculo de organização: acelera o filtro presente em toda leitura.
         imovel.HasIndex(i => i.OrganizacaoId);
 

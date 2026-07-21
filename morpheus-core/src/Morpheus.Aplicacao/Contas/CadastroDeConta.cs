@@ -47,29 +47,36 @@ public sealed class CadastroDeConta
     /// </summary>
     public async Task<Resultado> ExecutarAsync(DadosDoCadastro dados, CancellationToken cancelamento)
     {
-        var entrada = dados.Validar();
-        if (entrada.Falha)
-            return entrada;
+        var validacao = await ValidarEntradaAsync(dados, cancelamento);
+        if (validacao.Falha)
+            return validacao;
 
-        // Antes da checagem de existência: senha fraca recusada só no caminho de
+        // Depois da validação de senha: recusar e-mail fraco só no caminho de
         // e-mail novo seria oráculo de enumeração.
-        var senha = await _usuarios.ValidarSenhaAsync(dados.Senha, cancelamento);
-        if (senha.Falha)
-            return senha;
-
         if (await _usuarios.ExisteComEmailAsync(dados.Email, cancelamento))
             return Resultado.DeSucesso();
 
         var cadastro = await _transacao.ExecutarAsync(
             interno => FundarOrganizacaoComDonoAsync(dados, interno), cancelamento);
 
-        // Corrida perdida pelo mesmo e-mail: a transação já foi desfeita e a
-        // resposta continua indistinguível da de um cadastro bem-sucedido.
-        if (cadastro.Falha && cadastro.Erro == ErrosDeCadastro.EmailJaCadastrado)
-            return Resultado.DeSucesso();
-
-        return cadastro;
+        return TratarCorridaDeEmail(cadastro);
     }
+
+    private async Task<Resultado> ValidarEntradaAsync(DadosDoCadastro dados, CancellationToken cancelamento)
+    {
+        var entrada = dados.Validar();
+        if (entrada.Falha)
+            return entrada;
+
+        return await _usuarios.ValidarSenhaAsync(dados.Senha, cancelamento);
+    }
+
+    // Corrida perdida pelo mesmo e-mail: a transação já foi desfeita e a
+    // resposta continua indistinguível da de um cadastro bem-sucedido.
+    private static Resultado TratarCorridaDeEmail(Resultado cadastro) =>
+        cadastro.Falha && cadastro.Erro == ErrosDeCadastro.EmailJaCadastrado
+            ? Resultado.DeSucesso()
+            : cadastro;
 
     private async Task<Resultado> FundarOrganizacaoComDonoAsync(
         DadosDoCadastro dados, CancellationToken cancelamento)
