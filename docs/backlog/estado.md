@@ -4,7 +4,7 @@ Snapshot rápido do que já está em pé no código. A fonte de verdade dos crit
 é cada arquivo de épico; este arquivo só marca progresso. Legenda: ✅ concluída ·
 ◐ parcial · ☐ não iniciada.
 
-_Atualizado em 2026-07-20._
+_Atualizado em 2026-07-21._
 
 ## E1 — Core SaaS, multi-tenancy e assinaturas
 
@@ -28,7 +28,10 @@ _Atualizado em 2026-07-20._
 - ◐ **E1-F4 — Observabilidade**
   - ◐ H1 — Log JSON: `AddJsonConsole` configurado; **faltam** campos
     `tenant_id`/`request_id` e teste anti-vazamento de segredo.
-  - ☐ H2 — Tratamento de erro ponta a ponta: não iniciado.
+  - ◐ H2 — Tratamento de erro ponta a ponta: vocabulário de falha em pé
+    (`Resultado`/`Resultado<T>` + `Erro`), exceções de domínio portando `Erro`
+    e catálogos por agregado; **falta** a tradução HTTP (ProblemDetails) quando
+    houver endpoints.
 - ☐ **E1-F5 / E1-F6** — pós-MVP (Fase 5), não iniciadas.
 
 ## Decisões estruturais registradas
@@ -36,6 +39,11 @@ _Atualizado em 2026-07-20._
 - Isolamento multi-tenant por defesa estrutural — [ADR-0003](../adrs/0003-isolamento-multi-tenant.md).
 - Nomes de tabela em snake_case plural, sem prefixo `AspNet` do Identity; models
   no singular, tabelas no plural (`Organizacao` → `organizacoes`).
+- Result pattern (`Resultado`/`Resultado<T>` + record `Erro` com código e
+  descrição) como vocabulário único de falha entre camadas; exceção só para erro
+  de fato, sempre herdando de `ErroDeRegraDeNegocio` e portando um `Erro`.
+- Entidades nascem por factory (`Imovel.Cadastrar`, `Organizacao.Fundar` →
+  `Resultado`) e voltam do banco por `Rehidratar` (reconstrução sem revalidar).
 
 ## Próximo passo
 
