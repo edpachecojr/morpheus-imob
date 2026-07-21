@@ -1,30 +1,48 @@
 using Morpheus.Api.Configuracao;
 using Morpheus.Api.Identidade;
+using Morpheus.Api.Observabilidade;
 using Morpheus.Aplicacao.Organizacoes;
 using Morpheus.Infraestrutura;
+using Serilog;
 
-var construtor = WebApplication.CreateBuilder(args);
+// Log mínimo antes do host existir, para não perder falha de subida (E1-F4-H1).
+Log.Logger = ConfiguracaoDeObservabilidade.CriarLogInicial();
 
-// Log em JSON estruturado para depuração e busca; prosa é inútil para agentes (E1-F4-H1).
-construtor.Logging.ClearProviders();
-construtor.Logging.AddJsonConsole();
+try
+{
+    var construtor = WebApplication.CreateBuilder(args);
 
-// Falha cedo se faltar configuração obrigatória, dizendo qual variável e o formato.
-var stringDeConexao = VariaveisDeAmbienteObrigatorias.LerStringDeConexao(construtor.Configuration);
+    construtor.AdicionarObservabilidade();
 
-construtor.Services.AdicionarInfraestrutura(stringDeConexao);
-construtor.Services.AddHttpContextAccessor();
-construtor.Services.AddScoped<IContextoDoUsuario, ContextoDoUsuarioHttp>();
-construtor.Services.AddOpenApi();
+    // Falha cedo se faltar configuração obrigatória, dizendo qual variável e o formato.
+    var stringDeConexao = VariaveisDeAmbienteObrigatorias.LerStringDeConexao(construtor.Configuration);
 
-var aplicacao = construtor.Build();
+    construtor.Services.AdicionarInfraestrutura(stringDeConexao);
+    construtor.Services.AddHttpContextAccessor();
+    construtor.Services.AddScoped<IContextoDoUsuario, ContextoDoUsuarioHttp>();
+    construtor.Services.AddOpenApi();
 
-if (aplicacao.Environment.IsDevelopment())
-    aplicacao.MapOpenApi();
+    var aplicacao = construtor.Build();
 
-aplicacao.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+    aplicacao.UsarObservabilidade();
 
-aplicacao.Run();
+    if (aplicacao.Environment.IsDevelopment())
+        aplicacao.MapOpenApi();
+
+    aplicacao.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+
+    aplicacao.Run();
+}
+catch (Exception excecao) when (excecao is not HostAbortedException)
+{
+    // HostAbortedException é o sinal normal da WebApplicationFactory nos testes.
+    Log.Fatal(excecao, "Aplicação encerrou inesperadamente na subida");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 // Torna o Program acessível aos testes de integração (WebApplicationFactory).
 public partial class Program;
