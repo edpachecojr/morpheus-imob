@@ -3,6 +3,8 @@ using Morpheus.Testes.Unitarios.Fakes;
 
 namespace Morpheus.Testes.Unitarios.Organizacoes;
 
+// A cobertura do evento OrganizacaoFundadaEvento vive em EventosDeDominioTestes.
+
 public sealed class OrganizacaoTestes
 {
     private static readonly DateTimeOffset Instante = new(2026, 7, 21, 12, 0, 0, TimeSpan.Zero);
@@ -39,10 +41,20 @@ public sealed class OrganizacaoTestes
     {
         var id = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
-        var organizacao = Organizacao.Rehidratar(id, "Imobiliária Aurora", Instante);
+        var organizacao = Organizacao.Rehidratar(id, "Imobiliária Aurora", Instante, Instante);
 
         Assert.Equal(id, organizacao.Id);
         Assert.Equal("Imobiliária Aurora", organizacao.Nome);
         Assert.Equal(Instante, organizacao.CriadaEm);
+    }
+
+    [Fact]
+    public void Rehidratar_nao_registra_evento_de_dominio()
+    {
+        var id = Guid.Parse("22222222-2222-2222-2222-222222222222");
+
+        var organizacao = Organizacao.Rehidratar(id, "Imobiliária Aurora", Instante, Instante);
+
+        Assert.Empty(organizacao.EventosDeDominio);
     }
 }

@@ -50,11 +50,21 @@ public sealed class ImovelTestes
     {
         var id = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
-        var imovel = Imovel.Rehidratar(id, Organizacao, "AP-101", "Rua das Acácias, 100", Instante);
+        var imovel = Imovel.Rehidratar(id, Organizacao, "AP-101", "Rua das Acácias, 100", Instante, Instante);
 
         Assert.Equal(id, imovel.Id);
         Assert.Equal(Organizacao, imovel.OrganizacaoId);
         Assert.Equal("AP-101", imovel.CodigoDeReferencia);
         Assert.Equal(Instante, imovel.CadastradoEm);
+    }
+
+    [Fact]
+    public void Rehidratar_nao_registra_evento_de_dominio()
+    {
+        var id = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
+        var imovel = Imovel.Rehidratar(id, Organizacao, "AP-101", "Rua das Acácias, 100", Instante, Instante);
+
+        Assert.Empty(imovel.EventosDeDominio);
     }
 }
