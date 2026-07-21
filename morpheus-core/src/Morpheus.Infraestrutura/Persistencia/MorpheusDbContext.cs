@@ -7,6 +7,7 @@ using Morpheus.Dominio.Organizacoes;
 using Morpheus.Infraestrutura.Identidade;
 using Morpheus.Infraestrutura.Persistencia.Configuracoes;
 using Morpheus.Infraestrutura.Persistencia.Outbox;
+using Morpheus.Infraestrutura.Sessoes;
 
 namespace Morpheus.Infraestrutura.Persistencia;
 
@@ -34,6 +35,12 @@ public sealed class MorpheusDbContext : IdentityDbContext<UsuarioDaOrganizacao, 
     public DbSet<Imovel> Imoveis => Set<Imovel>();
     public DbSet<MensagemDeOutbox> MensagensDeOutbox => Set<MensagemDeOutbox>();
 
+    /// <summary>
+    /// Sessões do painel. Está aqui para que o schema entre nas migrações — a
+    /// leitura e a escrita de sessão passam por Dapper, fora do escopo do contexto.
+    /// </summary>
+    public DbSet<SessaoDoPainelArmazenada> Sessoes => Set<SessaoDoPainelArmazenada>();
+
     public override int SaveChanges(bool aceitarTodasAsMudancasAoConcluir)
     {
         GravarEventosNoOutbox();
@@ -54,7 +61,9 @@ public sealed class MorpheusDbContext : IdentityDbContext<UsuarioDaOrganizacao, 
         construtor.ApplyConfiguration(new ConfiguracaoDeImovel());
         construtor.ApplyConfiguration(new ConfiguracaoDeMensagemDeOutbox());
         construtor.ApplyConfiguration(new ConfiguracaoDeUsuarioDaOrganizacao());
+        construtor.ApplyConfiguration(new ConfiguracaoDeSessaoDoPainel());
         ConfiguracaoDasTabelasDaIdentidade.Aplicar(construtor);
+        ConfiguracaoDePapeisEPermissoes.Aplicar(construtor);
     }
 
     // Drena os eventos das entidades rastreadas para o outbox ANTES do commit, para
