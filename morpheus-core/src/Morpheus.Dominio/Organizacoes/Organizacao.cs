@@ -1,3 +1,4 @@
+using Morpheus.Dominio.Comum;
 using Morpheus.Dominio.Resultados;
 
 namespace Morpheus.Dominio.Organizacoes;
@@ -5,20 +6,22 @@ namespace Morpheus.Dominio.Organizacoes;
 /// <summary>
 /// Unidade de isolamento de dados (o tenant): uma imobiliária ou um corretor
 /// autônomo. Toda entidade de negócio pertence a exatamente uma organização —
-/// a própria organização é a única exceção, por ser a raiz do isolamento.
+/// a própria organização é a única exceção, por ser a raiz do isolamento, e por
+/// isso herda <see cref="EntidadeBase"/> mas não o vínculo de tenant.
 /// Nasce por <see cref="Fundar"/>; volta do banco por <see cref="Rehidratar"/>.
 /// </summary>
-public sealed class Organizacao
+public sealed class Organizacao : EntidadeBase
 {
-    public Guid Id { get; private set; }
     public string Nome { get; private set; }
-    public DateTimeOffset CriadaEm { get; private set; }
 
-    private Organizacao(Guid id, string nome, DateTimeOffset criadaEm)
+    /// <summary>Instante da fundação — a linguagem da organização para <see cref="DadosDeAuditoria.CriadoEm"/>.</summary>
+    public DateTimeOffset CriadaEm => Auditoria.CriadoEm;
+
+    private Organizacao(Guid id, string nome, DadosDeAuditoria auditoria)
     {
         Id = id;
         Nome = nome;
-        CriadaEm = criadaEm;
+        Auditoria = auditoria;
     }
 
     // Exigido pelo materializador do EF Core; nunca usado pelo domínio.
@@ -28,7 +31,8 @@ public sealed class Organizacao
     }
 
     /// <summary>
-    /// Funda uma organização nova: gera identidade e auditoria e valida o nome.
+    /// Funda uma organização nova: gera identidade e auditoria, valida o nome e
+    /// registra <see cref="OrganizacaoFundadaEvento"/> para o outbox drenar na escrita.
     /// Nome vazio é desfecho esperado, então vira <see cref="Resultado"/>.
     /// Exemplo: <c>Organizacao.Fundar("Imobiliária Aurora", relogio)</c>.
     /// </summary>
@@ -37,14 +41,17 @@ public sealed class Organizacao
         if (string.IsNullOrWhiteSpace(nome))
             return ErrosDeOrganizacao.NomeObrigatorio;
 
-        return new Organizacao(Guid.NewGuid(), nome.Trim(), relogio.GetUtcNow());
+        var organizacao = new Organizacao(Guid.NewGuid(), nome.Trim(), DadosDeAuditoria.Nascer(relogio));
+        organizacao.RegistrarEvento(new OrganizacaoFundadaEvento(
+            organizacao.Id, organizacao.Nome, organizacao.CriadaEm));
+        return organizacao;
     }
 
     /// <summary>
     /// Reconstrói uma organização já persistida a partir de dados confiáveis: não
-    /// gera identidade nem auditoria e não revalida. Exemplo:
-    /// <c>Organizacao.Rehidratar(id, "Imobiliária Aurora", quando)</c>.
+    /// gera identidade nem auditoria, não revalida e não registra evento.
+    /// Exemplo: <c>Organizacao.Rehidratar(id, "Imobiliária Aurora", criadoEm, atualizadoEm)</c>.
     /// </summary>
-    public static Organizacao Rehidratar(Guid id, string nome, DateTimeOffset criadaEm)
-        => new(id, nome, criadaEm);
+    public static Organizacao Rehidratar(Guid id, string nome, DateTimeOffset criadoEm, DateTimeOffset atualizadoEm)
+        => new(id, nome, DadosDeAuditoria.Rehidratar(criadoEm, atualizadoEm));
 }
