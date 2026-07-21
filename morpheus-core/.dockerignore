@@ -1,0 +1,19 @@
+# Mantém o contexto de build enxuto e evita vazar arquivos que a imagem não deve
+# carregar. Segredo (.env) nunca entra na imagem — regra do CLAUDE.md.
+**/bin/
+**/obj/
+**/*.user
+
+# Configuração local e segredos
+.env
+**/.env
+*.env
+
+# Testes não entram na imagem da API
+tests/
+
+# Orquestração e docs de desenvolvimento
+docker-compose.yml
+Dockerfile
+.dockerignore
+README.md

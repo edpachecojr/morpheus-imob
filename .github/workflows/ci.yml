@@ -1,0 +1,56 @@
+# CI que barra o que não presta (E1-F0-H3). Roda em todo push e em toda PR, sem
+# tocar em serviço externo real: formatação, análise estática, build, testes
+# UNITÁRIOS e, só depois de tudo passar, o build da imagem Docker.
+#
+# Os testes de INTEGRAÇÃO ficam fora deste pipeline de propósito: exigem Postgres
+# via Testcontainers (Docker + rede), contrariando "CI sem serviço externo real".
+# Rodam localmente com `dotnet test` e, quando houver, num workflow próprio.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# Cancela execuções antigas do mesmo ref quando chega um push novo.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: morpheus-core
+
+jobs:
+  build-e-testes-unitarios:
+    name: Build e testes unitários
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restaurar dependências
+        run: dotnet restore
+
+      - name: Verificar formatação e análise estática
+        run: dotnet format --verify-no-changes --no-restore
+
+      - name: Build (avisos viram erros)
+        run: dotnet build --no-restore -c Release -warnaserror
+
+      - name: Testes unitários (sem banco, sem rede)
+        run: dotnet test tests/Morpheus.Testes.Unitarios --no-build -c Release
+
+  imagem-docker:
+    name: Build da imagem Docker
+    runs-on: ubuntu-latest
+    # Só constrói a imagem depois que build e testes passam — nesse momento, não antes.
+    needs: build-e-testes-unitarios
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build da imagem da API
+        run: docker build -t morpheus-api:${{ github.sha }} .
