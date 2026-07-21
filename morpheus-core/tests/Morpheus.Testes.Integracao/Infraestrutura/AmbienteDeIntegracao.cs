@@ -19,6 +19,9 @@ public sealed class AmbienteDeIntegracao : IAsyncLifetime
 
     public AplicacaoDeTeste Aplicacao { get; private set; } = default!;
 
+    /// <summary>Conexão do container, para o teste que precisa subir um host com outra configuração.</summary>
+    public string StringDeConexao => _postgres.GetConnectionString();
+
     public async Task InitializeAsync()
     {
         await _postgres.StartAsync();
