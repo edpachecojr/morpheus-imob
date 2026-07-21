@@ -41,7 +41,7 @@ public sealed class OrganizacaoTestes
     {
         var id = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
-        var organizacao = Organizacao.Rehidratar(id, "Imobiliária Aurora", Instante, Instante);
+        var organizacao = Organizacao.Rehidratar(id, "Imobiliária Aurora", ConfiguracaoDaOrganizacao.Padrao(), Instante, Instante);
 
         Assert.Equal(id, organizacao.Id);
         Assert.Equal("Imobiliária Aurora", organizacao.Nome);
@@ -53,7 +53,7 @@ public sealed class OrganizacaoTestes
     {
         var id = Guid.Parse("22222222-2222-2222-2222-222222222222");
 
-        var organizacao = Organizacao.Rehidratar(id, "Imobiliária Aurora", Instante, Instante);
+        var organizacao = Organizacao.Rehidratar(id, "Imobiliária Aurora", ConfiguracaoDaOrganizacao.Padrao(), Instante, Instante);
 
         Assert.Empty(organizacao.EventosDeDominio);
     }
