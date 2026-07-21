@@ -1,6 +1,8 @@
 using Morpheus.Api.Autorizacao;
 using Morpheus.Api.Endpoints.Contas;
+using Morpheus.Api.Endpoints.Emails;
 using Morpheus.Api.Endpoints.Imoveis;
+using Morpheus.Api.Endpoints.Organizacoes;
 using Morpheus.Api.Endpoints.Saude;
 using Morpheus.Api.Endpoints.Senhas;
 using Morpheus.Api.Endpoints.Sessoes;
@@ -22,7 +24,9 @@ public static class MapeamentoDeEndpoints
         new EndpointDeCadastroDeConta(),
         new EndpointDeSessao(),
         new EndpointDeSenha(),
+        new EndpointDeConfirmacaoDeEmail(),
         new EndpointDeImoveis(),
+        new EndpointDeOrganizacao(),
         new EndpointDeUsuariosDaOrganizacao(),
     ];
 

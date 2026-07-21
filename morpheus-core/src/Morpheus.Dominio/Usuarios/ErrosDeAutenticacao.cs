@@ -29,4 +29,8 @@ public static class ErrosDeAutenticacao
     public static readonly Erro TokenDeRecuperacaoInvalido =
         new("Autenticacao.TokenDeRecuperacaoInvalido",
             "Link de redefinição inválido ou expirado; solicite um novo.");
+
+    public static readonly Erro TokenDeConfirmacaoInvalido =
+        new("Autenticacao.TokenDeConfirmacaoInvalido",
+            "Link de confirmação inválido ou expirado; solicite um novo.");
 }

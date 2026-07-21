@@ -14,4 +14,18 @@ public interface IRepositorioDeOrganizacoes
     /// Exemplo: <c>await repositorio.AdicionarAsync(organizacao, cancelamento)</c>.
     /// </summary>
     Task AdicionarAsync(Organizacao organizacao, CancellationToken cancelamento);
+
+    /// <summary>
+    /// A organização do id, ou <c>null</c> se não existir mais. Único ponto de
+    /// leitura por id: o onboarding (E1-F1-H4) é o primeiro caso de uso que
+    /// precisa reler a própria organização para alterá-la.
+    /// Exemplo: <c>await repositorio.ObterPorIdAsync(organizacaoId, cancelamento)</c>.
+    /// </summary>
+    Task<Organizacao?> ObterPorIdAsync(Guid id, CancellationToken cancelamento);
+
+    /// <summary>
+    /// Persiste uma organização já existente e alterada em memória.
+    /// Exemplo: <c>await repositorio.AtualizarAsync(organizacao, cancelamento)</c>.
+    /// </summary>
+    Task AtualizarAsync(Organizacao organizacao, CancellationToken cancelamento);
 }

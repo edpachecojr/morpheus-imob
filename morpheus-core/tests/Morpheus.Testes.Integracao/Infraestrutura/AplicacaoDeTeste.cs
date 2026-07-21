@@ -8,6 +8,8 @@ using Morpheus.Api.Configuracao;
 using Morpheus.Api.Identidade;
 using Morpheus.Api.Seguranca;
 using Morpheus.Aplicacao.Organizacoes;
+using Morpheus.Aplicacao.Senhas;
+using Morpheus.Aplicacao.Usuarios;
 
 namespace Morpheus.Testes.Integracao.Infraestrutura;
 
@@ -52,6 +54,16 @@ public sealed class AplicacaoDeTeste : WebApplicationFactory<Program>
             servicos.AddScoped<ContextoDoUsuarioHttp>();
             servicos.RemoveAll<IContextoDoUsuario>();
             servicos.AddScoped<IContextoDoUsuario, ContextoDoUsuarioDeTeste>();
+
+            // Nenhum teste de integração fala SMTP de verdade: os dois envios de
+            // e-mail transacional caem no mesmo dublê em memória.
+            servicos.AddSingleton<EnviosDeEmailDeTeste>();
+            servicos.RemoveAll<IEnvioDeEmailDeRecuperacao>();
+            servicos.AddSingleton<IEnvioDeEmailDeRecuperacao>(
+                provedor => provedor.GetRequiredService<EnviosDeEmailDeTeste>());
+            servicos.RemoveAll<IEnvioDeEmailDeConfirmacao>();
+            servicos.AddSingleton<IEnvioDeEmailDeConfirmacao>(
+                provedor => provedor.GetRequiredService<EnviosDeEmailDeTeste>());
         });
     }
 }

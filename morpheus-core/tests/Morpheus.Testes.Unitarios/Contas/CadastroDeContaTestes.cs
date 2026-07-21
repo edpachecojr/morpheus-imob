@@ -18,6 +18,8 @@ public sealed class CadastroDeContaTestes
     private readonly ExecucaoTransacionalFake _transacao = new();
     private readonly RepositorioDeOrganizacoesFake _organizacoes = new();
     private readonly RegistroDeUsuariosFake _usuarios = new();
+    private readonly TokensDeConfirmacaoDeEmailFake _tokensDeConfirmacao = new();
+    private readonly EnvioDeEmailDeConfirmacaoFake _envioDeConfirmacao = new();
 
     [Fact]
     public async Task Funda_a_organizacao_com_o_dono_na_mesma_transacao()
@@ -30,6 +32,27 @@ public sealed class CadastroDeContaTestes
         var dono = Assert.Single(_usuarios.Criados);
         Assert.Equal(organizacao.Id, dono.OrganizacaoId);
         Assert.Equal(PapeisDoUsuario.Dono, dono.Papel);
+    }
+
+    [Fact]
+    public async Task Cadastro_bem_sucedido_emite_e_envia_confirmacao_de_email()
+    {
+        await Executar(Cadastro());
+
+        var envio = Assert.Single(_envioDeConfirmacao.Envios);
+        Assert.Equal("ana@exemplo.com", envio.Email);
+        Assert.Equal("Ana Souza", envio.NomeCompleto);
+        Assert.Equal(Assert.Single(_tokensDeConfirmacao.Emitidos), envio.Token);
+    }
+
+    [Fact]
+    public async Task Email_ja_cadastrado_nao_envia_confirmacao()
+    {
+        _usuarios.JaCadastrado("ana@exemplo.com");
+
+        await Executar(Cadastro());
+
+        Assert.Empty(_envioDeConfirmacao.Envios);
     }
 
     [Fact]
@@ -105,6 +128,7 @@ public sealed class CadastroDeContaTestes
         => new("Ana Souza", "ana@exemplo.com", SenhaValida, SenhaValida);
 
     private Task<Morpheus.Dominio.Resultados.Resultado> Executar(DadosDoCadastro dados)
-        => new CadastroDeConta(_transacao, _organizacoes, _usuarios, new RelogioFixo(Instante))
+        => new CadastroDeConta(
+                _transacao, _organizacoes, _usuarios, _tokensDeConfirmacao, _envioDeConfirmacao, new RelogioFixo(Instante))
             .ExecutarAsync(dados, CancellationToken.None);
 }

@@ -4,7 +4,8 @@ Snapshot rápido do que já está em pé no código. A fonte de verdade dos crit
 é cada arquivo de épico; este arquivo só marca progresso. Legenda: ✅ concluída ·
 ◐ parcial · ☐ não iniciada.
 
-_Atualizado em 2026-07-21._
+_Atualizado em 2026-07-21 (onboarding, confirmação de e-mail, e-mail
+transacional real e tratamento de erro ponta a ponta)._
 
 ## E1 — Core SaaS, multi-tenancy e assinaturas
 
@@ -24,7 +25,7 @@ _Atualizado em 2026-07-21._
     override explícito de `SaveChanges` grava o evento em `mensagens_outbox` na
     mesma transação do dado ([ADR-0009](../adrs/0009-eventos-de-dominio-e-outbox.md)).
     **Falta** a drenagem: dispatcher, filas, agendador e as garantias de job.
-- ◐ **E1-F1 — Tenant e isolamento**
+- ✅ **E1-F1 — Tenant e isolamento**
   - ✅ H1 — Isolamento na camada de dados: interceptor de escrita + filtro
     explícito de leitura, provados por testes de integração contra Postgres.
   - ✅ H2 — Criação de conta e tenant: `POST /contas` funda organização + usuário
@@ -33,16 +34,24 @@ _Atualizado em 2026-07-21._
     para conta criada, e-mail repetido e armadilha de robô.
   - ✅ H3 — Chave única por tenant: índice único `(organizacao_id, codigo)` com
     teste de integração.
+  - ✅ H4 — Onboarding: `PATCH /organizacao` renomeia (`tenant.configurar`, só o
+    dono), `PATCH /organizacao/usuarios/atual` completa o próprio nome
+    (qualquer papel). Autor e horário auditados por `OrganizacaoRenomeadaEvento`
+    no outbox — `DadosDeAuditoria` não ganhou campo de autor, o "quem" é fato de
+    negócio, não coluna. Nenhuma das duas rotas é obrigatória.
 - ◐ **E1-F2 — Autenticação**
   - ✅ H1 — Login por e-mail e senha: cookie opaco + sessão no servidor
     ([ADR-0011](../adrs/0011-sessao-opaca-no-servidor.md)), senha em Argon2id,
     recusas indistinguíveis, limite por origem e bloqueio por conta.
   - ☐ H2 — Login com Google: adiado por decisão, entra sobre o que já existe.
   - ✅ H3 — Recuperação de senha: resposta genérica, token de uso único com 30 min
-    e queda de todas as sessões na troca. **Falta** o provedor de e-mail real —
-    a porta `IEnvioDeEmailDeRecuperacao` hoje só registra em log, sem o token.
+    e queda de todas as sessões na troca. Provedor de e-mail real em pé desde
+    esta revisão (ver abaixo) — `IEnvioDeEmailDeRecuperacao` não é mais só log.
   - ✅ H4 — Encerrar sessão: revogação no servidor, só do aparelho que saiu.
   - ☐ H5 — MFA por TOTP: pós-MVP.
+  - ✅ H6 — Confirmar e-mail no cadastro: token emitido e enviado ao criar a
+    conta, sem bloquear login; reenvio gira o carimbo de segurança do Identity,
+    invalidando o token anterior — mesmo mecanismo que a recuperação de senha.
 - ◐ **E1-F3 — Autorização**
   - ✅ H1 — Verificação central: ponto único `Pode(usuario, permissao)`, política
     por permissão registrada na subida, rota sem declaração **derruba o processo**,
@@ -58,10 +67,13 @@ _Atualizado em 2026-07-21._
     APM decimal (Datadog), `organizacao_id` (tenant_id) via `LogContext` quando
     há sessão, redator anti-vazamento com teste. Config no appsettings via
     `IOptions`; exportação OTLP agnóstica de fornecedor ([ADR-0008](../adrs/0008-observabilidade-agnostica.md)).
-  - ◐ H2 — Tratamento de erro ponta a ponta: vocabulário de falha em pé
-    (`Resultado`/`Resultado<T>` + `Erro`), exceções de domínio portando `Erro`
-    e catálogos por agregado; **falta** a tradução HTTP (ProblemDetails) quando
-    houver endpoints.
+  - ✅ H2 — Tratamento de erro ponta a ponta: `ManipuladorGlobalDeExcecoes`
+    (`IExceptionHandler`, primeiro middleware do pipeline) captura exceção não
+    tratada de qualquer rota — ProblemDetails genérico para o cliente, exceção
+    completa para o log — reaproveitando `RespostaDeFalha`, o mesmo ponto único
+    que já traduz `Resultado` de falha. `traceId` do `AddProblemDetails()`
+    removido de propósito para não quebrar a resposta byte-idêntica contra
+    enumeração de contas.
 - ☐ **E1-F5 / E1-F6** — pós-MVP (Fase 5), não iniciadas.
 
 ## Decisões estruturais registradas
@@ -90,11 +102,11 @@ _Atualizado em 2026-07-21._
 
 ## Próximo passo
 
-Duas frentes abertas, em ordem:
-
 1. **Fechar a E1-F0** — caminho crítico completo (H1) e a drenagem do outbox:
    dispatcher, filas e agendador (H4). O agendador também resolve a varredura de
    sessões expiradas.
-2. **Onboarding e e-mail transacional** — renomear organização, completar dados de
-   usuário e organização, confirmar e-mail, e a implementação real de
-   `IEnvioDeEmailDeRecuperacao`. Depois disso, E1-F2-H2 (login com Google).
+2. **E1-F2-H2 — login com Google**, agora que o onboarding (E1-F1-H4) e a
+   confirmação de e-mail (E1-F2-H6) — os dois itens que a bloqueavam por
+   decisão — estão em pé.
+3. **E2-F1 — completar cadastro de imóveis** (listar/buscar, editar, registrar
+   proprietário) — pré-requisito direto do Dossiê Digital (E5).

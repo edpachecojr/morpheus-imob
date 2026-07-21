@@ -57,6 +57,26 @@ public sealed class Organizacao : EntidadeBase
     }
 
     /// <summary>
+    /// Renomeia a organização (E1-F1-H4): substitui o nome herdado do fundador
+    /// pelo nome definitivo do onboarding, avança <see cref="DadosDeAuditoria"/> e
+    /// registra <see cref="OrganizacaoRenomeadaEvento"/> com o autor da mudança —
+    /// a auditoria de "quem" que o value object de auditoria não carrega.
+    /// Nome vazio é desfecho esperado, então vira <see cref="Resultado"/>.
+    /// Exemplo: <c>organizacao.Renomear("Imobiliária Aurora Ltda", autorId, relogio)</c>.
+    /// </summary>
+    public Resultado Renomear(string novoNome, Guid autorId, TimeProvider relogio)
+    {
+        if (string.IsNullOrWhiteSpace(novoNome))
+            return Resultado.DeFalha(ErrosDeOrganizacao.NomeObrigatorio);
+
+        var nomeAntigo = Nome;
+        Nome = novoNome.Trim();
+        Auditoria = Auditoria.RegistrarAlteracao(relogio);
+        RegistrarEvento(new OrganizacaoRenomeadaEvento(Id, nomeAntigo, Nome, autorId, relogio.GetUtcNow()));
+        return Resultado.DeSucesso();
+    }
+
+    /// <summary>
     /// Reconstrói uma organização já persistida a partir de dados confiáveis: não
     /// gera identidade nem auditoria, não revalida e não registra evento.
     /// Exemplo: <c>Organizacao.Rehidratar(id, "Imobiliária Aurora", configuracao, criadoEm, atualizadoEm)</c>.

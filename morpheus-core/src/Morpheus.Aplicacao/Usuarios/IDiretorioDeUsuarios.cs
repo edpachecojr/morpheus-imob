@@ -17,6 +17,13 @@ public interface IDiretorioDeUsuarios
     Task<UsuarioDoPainel?> BuscarPorEmailAsync(string email, CancellationToken cancelamento);
 
     /// <summary>
+    /// Usuário do id informado, ou <c>null</c> se não houver. Serve o reenvio de
+    /// confirmação de e-mail (E1-F2-H6), que só tem o id da sessão, não o e-mail.
+    /// Exemplo: <c>await diretorio.BuscarPorIdAsync(usuarioId, cancelamento)</c>.
+    /// </summary>
+    Task<UsuarioDoPainel?> BuscarPorIdAsync(Guid id, CancellationToken cancelamento);
+
+    /// <summary>
     /// Usuários da organização do contexto, resolvida por
     /// <see cref="IContextoDaOrganizacaoAtual"/> — nunca de parâmetro da requisição.
     /// Exemplo: <c>await diretorio.ListarDaOrganizacaoAsync(cancelamento)</c>.

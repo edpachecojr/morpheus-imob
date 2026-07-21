@@ -1,5 +1,6 @@
 using Morpheus.Aplicacao.Comum;
 using Morpheus.Aplicacao.Organizacoes;
+using Morpheus.Aplicacao.Usuarios;
 using Morpheus.Dominio.Organizacoes;
 using Morpheus.Dominio.Resultados;
 using Morpheus.Dominio.Usuarios;
@@ -26,17 +27,23 @@ public sealed class CadastroDeConta
     private readonly IExecucaoTransacional _transacao;
     private readonly IRepositorioDeOrganizacoes _organizacoes;
     private readonly IRegistroDeUsuarios _usuarios;
+    private readonly ITokensDeConfirmacaoDeEmail _tokensDeConfirmacao;
+    private readonly IEnvioDeEmailDeConfirmacao _envioDeConfirmacao;
     private readonly TimeProvider _relogio;
 
     public CadastroDeConta(
         IExecucaoTransacional transacao,
         IRepositorioDeOrganizacoes organizacoes,
         IRegistroDeUsuarios usuarios,
+        ITokensDeConfirmacaoDeEmail tokensDeConfirmacao,
+        IEnvioDeEmailDeConfirmacao envioDeConfirmacao,
         TimeProvider relogio)
     {
         _transacao = transacao;
         _organizacoes = organizacoes;
         _usuarios = usuarios;
+        _tokensDeConfirmacao = tokensDeConfirmacao;
+        _envioDeConfirmacao = envioDeConfirmacao;
         _relogio = relogio;
     }
 
@@ -90,7 +97,19 @@ public sealed class CadastroDeConta
         var novo = new NovoUsuarioDoPainel(
             fundacao.Valor.Id, dados.NomeCompleto, dados.Email, dados.Senha, PapeisDoUsuario.Dono);
         var criacao = await _usuarios.CriarAsync(novo, cancelamento);
+        if (criacao.Falha)
+            return Resultado.DeFalha(criacao.Erro);
 
-        return criacao.Falha ? Resultado.DeFalha(criacao.Erro) : Resultado.DeSucesso();
+        await EnviarConfirmacaoDeEmailAsync(criacao.Valor, dados, cancelamento);
+        return Resultado.DeSucesso();
+    }
+
+    // Token de uso único emitido e enviado assim que a conta existe (E1-F2-H6);
+    // não bloqueia o cadastro nem o primeiro login.
+    private async Task EnviarConfirmacaoDeEmailAsync(
+        Guid usuarioId, DadosDoCadastro dados, CancellationToken cancelamento)
+    {
+        var token = await _tokensDeConfirmacao.GerarAsync(usuarioId, cancelamento);
+        await _envioDeConfirmacao.EnviarAsync(dados.Email, dados.NomeCompleto, token, cancelamento);
     }
 }

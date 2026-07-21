@@ -142,6 +142,43 @@ não depender do que outro cliente já usou.
 - **E** `AP-101` duplicado **dentro** do mesmo tenant é rejeitado com erro que
   cita o código conflitante.
 
+### ✅ E1-F1-H4 `[MVP]` · 2 pts — Completar onboarding da organização
+**Como** dono recém-cadastrado, **quero** completar o nome da organização e os
+meus dados, **para** que Magic Link e relatório do Radar não saiam com o
+placeholder criado no cadastro.
+
+> **Estória faltante identificada na revisão de 2026-07-21.** A pendência já
+> existia em prosa na H2 acima e em [estado.md](./estado.md) — formalizada
+> aqui para ganhar critério de aceite testável, conforme a
+> [definição de pronto](./README.md#definição-de-pronto).
+
+- **Dado** um tenant recém-criado com o nome herdado do fundador, **quando** o
+  dono editar o nome da organização, **então** o novo nome aparece em toda
+  superfície pública (Magic Link do E5, relatório do E7) sem exigir nova
+  implantação.
+- **E** completar os dados da organização e do usuário **não é obrigatório**
+  para continuar operando — nada aqui bloqueia o primeiro uso.
+- **E** a alteração é auditada com autor e horário.
+
+> **✅ Feito:** `PATCH /organizacao` (`tenant.configurar`, só o dono) renomeia —
+> `Organizacao.Renomear` é a única mutação exposta além da fundação, sem novo
+> campo de dado de contato: nada no PRD especifica outro campo de organização,
+> então nenhum foi inventado. `PATCH /organizacao/usuarios/atual`
+> (`RequerApenasSessao`) completa "os meus dados" reaproveitando o
+> `NomeCompleto` que o cadastro já grava — qualquer papel edita o próprio nome.
+> Nenhuma das duas rotas altera o que já funciona sem elas.
+>
+> **Autor e horário:** `DadosDeAuditoria` só guarda "quando" (nunca teve campo
+> de autor, e adicioná-lo a toda entidade só para esta estória seria mudança
+> larga demais). O "quem" entra pelo mecanismo que o projeto já usa para fato
+> de negócio: `OrganizacaoRenomeadaEvento` (nome antigo, nome novo, autor,
+> instante) grava no outbox na mesma transação — auditoria por evento, não por
+> coluna, coerente com [ADR-0009](../adrs/0009-eventos-de-dominio-e-outbox.md).
+>
+> **Superfície pública:** Magic Link (E5) e relatório (E7) ainda não existem;
+> o critério fica satisfeito por construção, já que os dois leriam
+> `Organizacao.Nome` direto do banco, nunca de cache.
+
 ---
 
 ## E1-F2 — Autenticação — ◐ em andamento
@@ -206,10 +243,15 @@ mais uma senha.
 > o uso único vem do carimbo de segurança, que gira na troca e invalida qualquer
 > token pendente. Token forjado e conta inexistente devolvem resposta idêntica.
 >
-> **Pendente:** o envio real do e-mail. A porta `IEnvioDeEmailDeRecuperacao` está
-> definida e hoje é atendida por `EnvioDeRecuperacaoRegistradoEmLog`, que registra
-> o destinatário mascarado e **nunca o token**. Trocar pelo provedor transacional é
-> registrar outra implementação da porta.
+> **Provedor real de e-mail (pendência resolvida):** `EnvioDeRecuperacaoRegistradoEmLog`
+> foi substituído por `EnvioDeRecuperacaoPorEmail`, que envia de verdade por SMTP
+> (MailKit atrás de `RemetenteDeEmailComSmtp`, a interface fina exigida pelo
+> CLAUDE.md sobre SDK de terceiro). Configuração em `EmailTransacional__*`
+> (`.env.example`), qualquer provedor SMTP compatível serve. Só falha no
+> **primeiro envio**, não na subida — e-mail não é do caminho crítico de toda
+> requisição como a conexão com o banco é. A suíte de testes nunca fala SMTP: os
+> testes de integração substituem a porta por um dublê em memória. Token segue
+> **nunca** logado, só o destinatário mascarado.
 
 ### ✅ E1-F2-H4 `[MVP]` · 1 pt — Encerrar sessão
 - **Dado** uma sessão ativa, **quando** eu sair, **então** ela é revogada no
@@ -221,6 +263,39 @@ mais uma senha.
 
 ### E1-F2-H5 · 3 pts — MFA por TOTP
 Pós-MVP. Requisito de venda para imobiliária com equipe.
+
+### ✅ E1-F2-H6 `[MVP]` · 2 pts — Confirmar e-mail no cadastro
+**Como** sistema, **quero** confirmar que o e-mail do cadastro pertence a quem
+o usa, **para** que recuperação de senha e comunicação de cobrança do SaaS
+cheguem a alguém real.
+
+> **Estória faltante identificada na revisão de 2026-07-21**, mesma origem da
+> H4 do E1-F1: pendência de onboarding já citada em prosa, sem critério de
+> aceite testável até agora.
+
+- **Dado** um cadastro novo, **quando** a conta for criada, **então** um token
+  de confirmação de uso único é emitido e a conta fica marcada como "e-mail
+  não confirmado", **sem** bloquear o login.
+- **E** confirmar dentro do prazo marca a conta como confirmada.
+- **E** reenviar a confirmação invalida o token anterior.
+- **E** o token nunca aparece em log, só o resultado da confirmação.
+
+> **✅ Feito:** `CadastroDeConta` emite e envia o token de confirmação assim que
+> o usuário existe, pela mesma família de portas da recuperação de senha
+> (`ITokensDeConfirmacaoDeEmail` sobre `GenerateEmailConfirmationTokenAsync` do
+> Identity, `IEnvioDeEmailDeConfirmacao` sobre `RemetenteDeEmailComSmtp`).
+> `EmailConfirmed` nasce `false` por padrão do Identity e **nada no login
+> (`AutenticacaoDeUsuario`) o consulta** — confirmar é aditivo, nunca bloqueia.
+>
+> `POST /emails/verificacoes` (anônimo, limitado por origem) consome o token;
+> `POST /emails/confirmacoes` (`RequerApenasSessao`) reenvia. **Uso único e
+> reenvio invalidando o anterior** vêm do mesmo mecanismo que a redefinição de
+> senha já usa: o token do Identity vale enquanto o carimbo de segurança do
+> usuário não mudar, e o reenvio gira esse carimbo antes de emitir o token novo
+> — o anterior para de validar sem precisar de tabela própria de token.
+>
+> Token nunca logado, só o e-mail mascarado do envio — mesma regra da
+> recuperação de senha.
 
 ---
 
@@ -312,10 +387,32 @@ adivinhar.
 > **Observação:** `organizacao_id` só aparece com sessão autenticada; até a
 > autenticação (E1-F2) existir, o campo fica ausente por construção.
 
-### ☐ E1-F4-H2 `[MVP]` · 2 pts — Tratamento de erro ponta a ponta
+### ✅ E1-F4-H2 `[MVP]` · 2 pts — Tratamento de erro ponta a ponta
 - **Dado** um erro não tratado, **quando** ocorrer, **então** o usuário recebe
   mensagem útil sem detalhe interno, e o log registra o contexto completo.
 - **E** o erro carrega o valor que causou a falha e o formato esperado.
+
+> **✅ Feito:** `ManipuladorGlobalDeExcecoes` (`IExceptionHandler`, primeiro
+> middleware do pipeline) captura toda exceção não tratada de qualquer rota:
+> resposta genérica sem detalhe interno para o cliente, exceção completa +
+> método + rota para o log. Reaproveita `RespostaDeFalha` — o mesmo ponto único
+> que já traduz `Resultado` de falha em ProblemDetails — em vez de
+> `IProblemDetailsService` diretamente, para não duplicar o formato de erro da
+> API em dois lugares.
+>
+> **`AddProblemDetails()` com `traceId` removido de propósito:** o middleware
+> `UseExceptionHandler()` exige o serviço registrado mesmo com
+> `IExceptionHandler` próprio, mas o enriquecimento padrão (`traceId` por
+> requisição) quebraria a resposta **byte-idêntica** que a autenticação exige
+> contra enumeração de contas (E1-F2-H1) — `RespostaDeFalha` passa pelo mesmo
+> serviço. `CustomizeProblemDetails` remove o campo, preservando o contrato
+> existente.
+>
+> **"Erro carrega o valor que causou a falha e o formato esperado"** já era
+> satisfeito antes desta estória pelos catálogos de `Erro` por agregado
+> (`ErrosDeOrganizacao.JanelaDeAtendimentoInvertida`, `ErrosDeCadastro.EmailInvalido`
+> etc.) e por `VariaveisDeAmbienteObrigatorias` — o entregável concreto novo
+> aqui é a rede de segurança para o que nenhum desses catálogos previu.
 
 ### E1-F4-H3 · 3 pts — Métricas de produto instrumentadas
 Pós-MVP formal, mas os KPIs do PRD §2.3 devem começar a ser coletados na Fase 1.

@@ -17,6 +17,9 @@ public sealed class DiretorioDeUsuariosFake : IDiretorioDeUsuarios
     public Task<UsuarioDoPainel?> BuscarPorEmailAsync(string email, CancellationToken cancelamento)
         => Task.FromResult(_porEmail.GetValueOrDefault(email));
 
+    public Task<UsuarioDoPainel?> BuscarPorIdAsync(Guid id, CancellationToken cancelamento)
+        => Task.FromResult(_porEmail.Values.FirstOrDefault(usuario => usuario.Id == id));
+
     public Task<IReadOnlyList<UsuarioDoPainel>> ListarDaOrganizacaoAsync(CancellationToken cancelamento)
         => Task.FromResult<IReadOnlyList<UsuarioDoPainel>>([.. _porEmail.Values]);
 }

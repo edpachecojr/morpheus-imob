@@ -42,6 +42,16 @@ public sealed class DiretorioDeUsuariosComIdentity : IDiretorioDeUsuarios
         return Projetar(usuario, bloqueado);
     }
 
+    public async Task<UsuarioDoPainel?> BuscarPorIdAsync(Guid id, CancellationToken cancelamento)
+    {
+        var usuario = await _usuarios.FindByIdAsync(id.ToString());
+        if (usuario is null)
+            return null;
+
+        var bloqueado = await _usuarios.IsLockedOutAsync(usuario);
+        return Projetar(usuario, bloqueado);
+    }
+
     public async Task<IReadOnlyList<UsuarioDoPainel>> ListarDaOrganizacaoAsync(CancellationToken cancelamento)
     {
         var organizacaoId = await _organizacao.ObterOrganizacaoIdAsync(cancelamento);

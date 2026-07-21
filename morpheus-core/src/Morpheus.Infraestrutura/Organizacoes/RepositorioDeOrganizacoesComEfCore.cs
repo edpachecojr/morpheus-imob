@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Morpheus.Aplicacao.Organizacoes;
 using Morpheus.Dominio.Organizacoes;
 using Morpheus.Infraestrutura.Persistencia;
@@ -21,4 +22,12 @@ public sealed class RepositorioDeOrganizacoesComEfCore : IRepositorioDeOrganizac
         await _banco.Organizacoes.AddAsync(organizacao, cancelamento);
         await _banco.SaveChangesAsync(cancelamento);
     }
+
+    public Task<Organizacao?> ObterPorIdAsync(Guid id, CancellationToken cancelamento)
+        => _banco.Organizacoes.FirstOrDefaultAsync(organizacao => organizacao.Id == id, cancelamento);
+
+    // A organização já chega rastreada por ObterPorIdAsync: persistir a alteração
+    // é só confirmar a transação, sem um Update explícito redundante.
+    public Task AtualizarAsync(Organizacao organizacao, CancellationToken cancelamento)
+        => _banco.SaveChangesAsync(cancelamento);
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Morpheus.Aplicacao.Autorizacao;
@@ -10,13 +11,13 @@ using Morpheus.Aplicacao.Organizacoes;
 using Morpheus.Aplicacao.Senhas;
 using Morpheus.Aplicacao.Sessoes;
 using Morpheus.Aplicacao.Usuarios;
+using Morpheus.Infraestrutura.Email;
 using Morpheus.Infraestrutura.Identidade;
 using Morpheus.Infraestrutura.Imoveis;
 using Morpheus.Infraestrutura.Observabilidade;
 using Morpheus.Infraestrutura.Organizacoes;
 using Morpheus.Infraestrutura.Persistencia;
 using Morpheus.Infraestrutura.Persistencia.Outbox;
-using Morpheus.Infraestrutura.Senhas;
 using Morpheus.Infraestrutura.Sessoes;
 
 namespace Morpheus.Infraestrutura;
@@ -30,13 +31,15 @@ public static class ConfiguracaoDeInfraestrutura
 {
     public static IServiceCollection AdicionarInfraestrutura(
         this IServiceCollection servicos,
-        string stringDeConexao)
+        string stringDeConexao,
+        IConfiguration configuracao)
     {
         servicos.AddSingleton(TimeProvider.System);
         servicos.AddMemoryCache();
 
         AdicionarBanco(servicos, stringDeConexao);
         AdicionarIdentidade(servicos);
+        AdicionarEmailTransacional(servicos, configuracao);
         AdicionarIsolamentoPorOrganizacao(servicos);
         AdicionarSessoes(servicos, stringDeConexao);
         AdicionarCasosDeUsoDeConta(servicos);
@@ -89,10 +92,21 @@ public static class ConfiguracaoDeInfraestrutura
     {
         servicos.AddScoped<IRegistroDeUsuarios, RegistroDeUsuariosComIdentity>();
         servicos.AddScoped<IDiretorioDeUsuarios, DiretorioDeUsuariosComIdentity>();
+        servicos.AddScoped<IAtualizacaoDeUsuario, AtualizacaoDeUsuarioComIdentity>();
         servicos.AddScoped<IVerificadorDeSenha, VerificadorDeSenhaComIdentity>();
         servicos.AddScoped<ITokensDeRecuperacaoDeSenha, TokensDeRecuperacaoComIdentity>();
-        servicos.AddScoped<IEnvioDeEmailDeRecuperacao, EnvioDeRecuperacaoRegistradoEmLog>();
+        servicos.AddScoped<ITokensDeConfirmacaoDeEmail, TokensDeConfirmacaoDeEmailComIdentity>();
         servicos.AddSingleton<IAutorizadorDeAcesso, AutorizadorPorClaimDePermissao>();
+    }
+
+    private static void AdicionarEmailTransacional(IServiceCollection servicos, IConfiguration configuracao)
+    {
+        servicos.Configure<ConfiguracaoDeEmailTransacional>(
+            configuracao.GetSection(ConfiguracaoDeEmailTransacional.Secao));
+
+        servicos.AddScoped<RemetenteDeEmailComSmtp>();
+        servicos.AddScoped<IEnvioDeEmailDeRecuperacao, EnvioDeRecuperacaoPorEmail>();
+        servicos.AddScoped<IEnvioDeEmailDeConfirmacao, EnvioDeConfirmacaoPorEmail>();
     }
 
     // Comprimento acima de zoológico de símbolos: o NIST 800-63B abandonou a regra
@@ -121,6 +135,7 @@ public static class ConfiguracaoDeInfraestrutura
         servicos.AddScoped<IResolvedorDaOrganizacaoDoUsuario, ResolvedorDaOrganizacaoDoUsuario>();
         servicos.AddScoped<IContextoDaOrganizacaoAtual, ContextoDaOrganizacaoAtual>();
         servicos.AddScoped<IRepositorioDeOrganizacoes, RepositorioDeOrganizacoesComEfCore>();
+        servicos.AddScoped<RenomeacaoDaOrganizacao>();
     }
 
     // Singleton porque a sessão é restaurada na autenticação do cookie, antes de
@@ -137,6 +152,9 @@ public static class ConfiguracaoDeInfraestrutura
         servicos.AddScoped<AutenticacaoDeUsuario>();
         servicos.AddScoped<SolicitacaoDeRecuperacaoDeSenha>();
         servicos.AddScoped<RedefinicaoDeSenha>();
+        servicos.AddScoped<AtualizacaoDeDadosDoUsuario>();
+        servicos.AddScoped<SolicitacaoDeConfirmacaoDeEmail>();
+        servicos.AddScoped<ConfirmacaoDeEmail>();
     }
 
     private static void AdicionarAcessoAImoveis(IServiceCollection servicos, string stringDeConexao)
