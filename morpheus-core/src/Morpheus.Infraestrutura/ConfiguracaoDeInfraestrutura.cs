@@ -5,6 +5,7 @@ using Morpheus.Aplicacao.Imoveis;
 using Morpheus.Aplicacao.Organizacoes;
 using Morpheus.Infraestrutura.Identidade;
 using Morpheus.Infraestrutura.Imoveis;
+using Morpheus.Infraestrutura.Observabilidade;
 using Morpheus.Infraestrutura.Organizacoes;
 using Morpheus.Infraestrutura.Persistencia;
 
@@ -61,5 +62,8 @@ public static class ConfiguracaoDeInfraestrutura
         servicos.AddSingleton<IFabricaDeConexao>(new FabricaDeConexaoNpgsql(stringDeConexao));
         servicos.AddScoped<IRepositorioDeImoveis, RepositorioDeImoveisComEfCore>();
         servicos.AddScoped<IConsultaDeImoveisResumidos, LeitorDeImoveisComDapper>();
+
+        // Log transversal por composição (OCP): o leitor Dapper não sabe que é observado.
+        servicos.Decorar<IConsultaDeImoveisResumidos, ConsultaDeImoveisComRegistroDeLog>();
     }
 }
