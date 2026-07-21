@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Morpheus.Infraestrutura.Persistencia.Outbox;
 
 namespace Morpheus.Infraestrutura.Persistencia;
 
@@ -24,6 +25,8 @@ public sealed class FabricaDeContextoEmTempoDeDesign : IDesignTimeDbContextFacto
             .UseSnakeCaseNamingConvention()
             .Options;
 
-        return new MorpheusDbContext(opcoes);
+        // A drenagem do outbox nunca roda em tempo de design (só geração de modelo),
+        // mas o construtor exige o montador — instância real mantém o contexto válido.
+        return new MorpheusDbContext(opcoes, new MontadorDeMensagensDeOutbox(new SerializadorDeEventoComSystemTextJson()));
     }
 }

@@ -63,8 +63,9 @@ public abstract class TesteDeIntegracao
     }
 
     /// <summary>
-    /// Cadastra um imóvel já vinculado à organização, pelo caminho sem sessão
-    /// (vínculo explícito), isolando a semeadura da lógica de contexto autenticado.
+    /// Cadastra um imóvel já vinculado à organização, pelo caminho sem sessão,
+    /// isolando a semeadura da lógica de contexto autenticado. O tenant entra na
+    /// própria factory, como manda o domínio.
     /// </summary>
     protected async Task SemearImovelAsync(Guid organizacaoId, string codigo, string endereco)
     {
@@ -72,8 +73,7 @@ public abstract class TesteDeIntegracao
         using var escopo = Ambiente.Aplicacao.Services.CreateScope();
         var banco = escopo.ServiceProvider.GetRequiredService<MorpheusDbContext>();
 
-        var imovel = Imovel.Cadastrar(codigo, endereco, TimeProvider.System).Valor;
-        imovel.AtribuirOrganizacao(organizacaoId);
+        var imovel = Imovel.Cadastrar(new OrganizacaoDona(organizacaoId), codigo, endereco, TimeProvider.System).Valor;
         banco.Imoveis.Add(imovel);
         await banco.SaveChangesAsync();
     }
@@ -82,7 +82,7 @@ public abstract class TesteDeIntegracao
     {
         var login = $"dono-{Guid.NewGuid():N}@exemplo.test";
         var dono = new UsuarioDaOrganizacao { Id = Guid.NewGuid(), UserName = login, Email = login };
-        dono.AtribuirOrganizacao(organizacaoId);
+        dono.VincularAOrganizacao(new OrganizacaoDona(organizacaoId));
         dono.DefinirPapel(PapelDoUsuario.Dono);
         dono.DefinirNomeCompleto($"Dono {nome}");
 

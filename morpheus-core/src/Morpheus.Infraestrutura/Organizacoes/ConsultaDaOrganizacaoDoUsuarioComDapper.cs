@@ -6,12 +6,12 @@ namespace Morpheus.Infraestrutura.Organizacoes;
 
 /// <summary>
 /// Busca o id da organização de um usuário na tabela de identidade, via Dapper em
-/// conexão própria. NÃO usa o <see cref="MorpheusDbContext"/> de propósito: o
-/// interceptor de escrita depende (transitivamente) desta consulta, e lê-la pelo
-/// mesmo contexto criaria dependência circular na composição — o contexto depende
-/// do interceptor, que dependeria do contexto — além de consulta reentrante no
-/// meio do SaveChanges. Conexão separada resolve os dois. É a fonte da verdade por
-/// trás do cache; roda só no cache miss.
+/// conexão própria. NÃO usa o <see cref="MorpheusDbContext"/> de propósito: a
+/// resolução do tenant é insumo do próprio contexto de dados (repositórios e filtro
+/// de leitura dependem dela), então lê-la pelo mesmo <c>DbContext</c> acoplaria a
+/// origem do tenant ao contexto que ela serve. Conexão separada mantém a resolução
+/// independente do provedor de dados. É a fonte da verdade por trás do cache; roda
+/// só no cache miss.
 /// </summary>
 public sealed class ConsultaDaOrganizacaoDoUsuarioComDapper : IConsultaDaOrganizacaoDoUsuario
 {

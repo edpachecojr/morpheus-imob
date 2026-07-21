@@ -9,9 +9,10 @@ namespace Morpheus.Infraestrutura.Imoveis;
 
 /// <summary>
 /// Escrita e leitura transacional de imóveis via EF Core. A leitura passa pelo
-/// filtro explícito <see cref="FiltroDaOrganizacao.DaOrganizacao"/>; a escrita
-/// carimba a organização do contexto antes de persistir. O interceptor ainda
-/// valida o vínculo no SaveChanges como segunda barreira.
+/// filtro explícito <see cref="FiltroDaOrganizacao.DaOrganizacao"/> com a
+/// organização do contexto; a escrita apenas persiste o imóvel, que já nasce
+/// vinculado à sua organização pela factory de domínio — definir o tenant é
+/// responsabilidade de quem cadastra (aplicação), não da persistência.
 /// </summary>
 public sealed class RepositorioDeImoveisComEfCore : IRepositorioDeImoveis
 {
@@ -26,8 +27,6 @@ public sealed class RepositorioDeImoveisComEfCore : IRepositorioDeImoveis
 
     public async Task AdicionarAsync(Imovel imovel, CancellationToken cancelamento)
     {
-        var organizacaoId = await _organizacao.ObterOrganizacaoIdAsync(cancelamento);
-        imovel.AtribuirOrganizacao(organizacaoId);
         await _banco.Imoveis.AddAsync(imovel, cancelamento);
         await _banco.SaveChangesAsync(cancelamento);
     }

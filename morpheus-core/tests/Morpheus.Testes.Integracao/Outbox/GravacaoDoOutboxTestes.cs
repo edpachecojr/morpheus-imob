@@ -49,22 +49,22 @@ public sealed class GravacaoDoOutboxTestes : TesteDeIntegracao
     [Fact]
     public async Task Escrita_rejeitada_nao_deixa_evento_orfao_no_outbox()
     {
-        var aurora = await SemearOrganizacaoAsync("Aurora");
-        var belaVista = await SemearOrganizacaoAsync("Bela Vista");
+        var organizacaoInexistente = Guid.NewGuid();
 
-        // Escrita com organização divergente do contexto é rejeitada antes do commit.
-        await Assert.ThrowsAsync<ErroDeOrganizacaoDivergente>(() =>
-            ComoUsuario(aurora.UsuarioId, async provedor =>
+        // A escrita cai no commit pela FK (organização inexistente), levando junto a
+        // linha de outbox que o SaveChanges havia enfileirado na mesma transação.
+        await Assert.ThrowsAsync<DbUpdateException>(() =>
+            SemSessao(async provedor =>
             {
                 var banco = provedor.GetRequiredService<MorpheusDbContext>();
-                var intruso = Imovel.Cadastrar("AP-999", "Rua Intrusa, 999", TimeProvider.System).Valor;
-                intruso.AtribuirOrganizacao(belaVista.OrganizacaoId);
-                banco.Imoveis.Add(intruso);
+                var imovel = Imovel.Cadastrar(
+                    new OrganizacaoDona(organizacaoInexistente), "AP-999", "Rua Intrusa, 999", TimeProvider.System).Valor;
+                banco.Imoveis.Add(imovel);
                 await banco.SaveChangesAsync();
             }));
 
-        // Nenhum evento de imóvel vazou: dado e evento compartilham a transação.
-        var mensagens = await MensagensDaOrganizacaoAsync(belaVista.OrganizacaoId);
+        // Nenhum evento de imóvel vazou: dado e evento sobem ou caem juntos.
+        var mensagens = await MensagensDaOrganizacaoAsync(organizacaoInexistente);
         Assert.DoesNotContain(mensagens, m => m.TipoDoEvento == nameof(ImovelCadastradoEvento));
     }
 

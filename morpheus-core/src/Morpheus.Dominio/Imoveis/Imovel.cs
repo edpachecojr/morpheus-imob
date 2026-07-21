@@ -18,7 +18,9 @@ public sealed class Imovel : EntidadeDaOrganizacao
     /// <summary>Instante do cadastro — a linguagem do imóvel para <see cref="DadosDeAuditoria.CriadoEm"/>.</summary>
     public DateTimeOffset CadastradoEm => Auditoria.CriadoEm;
 
-    private Imovel(Guid id, string codigoDeReferencia, string endereco, DadosDeAuditoria auditoria)
+    private Imovel(
+        Guid id, OrganizacaoDona organizacao, string codigoDeReferencia, string endereco, DadosDeAuditoria auditoria)
+        : base(organizacao)
     {
         Id = id;
         CodigoDeReferencia = codigoDeReferencia;
@@ -34,12 +36,16 @@ public sealed class Imovel : EntidadeDaOrganizacao
     }
 
     /// <summary>
-    /// Cadastra um imóvel novo: gera identidade e auditoria, valida os campos e
-    /// registra <see cref="ImovelCadastradoEvento"/> para o outbox drenar na escrita.
-    /// Entrada inválida é desfecho esperado, então vira <see cref="Resultado"/> —
-    /// não exceção. Exemplo: <c>Imovel.Cadastrar("AP-101", "Rua das Acácias, 100", relogio)</c>.
+    /// Cadastra um imóvel novo já vinculado à sua organização: recebe o tenant, gera
+    /// identidade e auditoria, valida os campos e registra
+    /// <see cref="ImovelCadastradoEvento"/> para o outbox drenar na escrita. A
+    /// organização entra por <see cref="OrganizacaoDona"/> — quem cadastra é dono de
+    /// defini-la (a partir do contexto autenticado), não a persistência. Entrada
+    /// inválida é desfecho esperado, então vira <see cref="Resultado"/> — não exceção.
+    /// Exemplo: <c>Imovel.Cadastrar(new OrganizacaoDona(contexto.OrganizacaoId), "AP-101", "Rua das Acácias, 100", relogio)</c>.
     /// </summary>
-    public static Resultado<Imovel> Cadastrar(string codigoDeReferencia, string endereco, TimeProvider relogio)
+    public static Resultado<Imovel> Cadastrar(
+        OrganizacaoDona organizacao, string codigoDeReferencia, string endereco, TimeProvider relogio)
     {
         if (string.IsNullOrWhiteSpace(codigoDeReferencia))
             return ErrosDeImovel.CodigoObrigatorio;
@@ -47,7 +53,7 @@ public sealed class Imovel : EntidadeDaOrganizacao
             return ErrosDeImovel.EnderecoObrigatorio;
 
         var imovel = new Imovel(
-            Guid.NewGuid(), codigoDeReferencia.Trim(), endereco.Trim(), DadosDeAuditoria.Nascer(relogio));
+            Guid.NewGuid(), organizacao, codigoDeReferencia.Trim(), endereco.Trim(), DadosDeAuditoria.Nascer(relogio));
         imovel.RegistrarEvento(new ImovelCadastradoEvento(
             imovel.Id, imovel.CodigoDeReferencia, imovel.Endereco, imovel.CadastradoEm));
         return imovel;
@@ -67,9 +73,11 @@ public sealed class Imovel : EntidadeDaOrganizacao
         DateTimeOffset criadoEm,
         DateTimeOffset atualizadoEm)
     {
-        var imovel = new Imovel(
-            id, codigoDeReferencia, endereco, DadosDeAuditoria.Rehidratar(criadoEm, atualizadoEm));
-        imovel.AtribuirOrganizacao(organizacaoId);
-        return imovel;
+        return new Imovel(
+            id,
+            new OrganizacaoDona(organizacaoId),
+            codigoDeReferencia,
+            endereco,
+            DadosDeAuditoria.Rehidratar(criadoEm, atualizadoEm));
     }
 }

@@ -47,6 +47,24 @@ transação do dado.** Três peças, sem dependência externa nova:
 publicadores, filas e consumidores. A coluna `processado_em` nasce nula só para o
 futuro consumidor marcar o que publicou, sem exigir migração depois.
 
+## Emenda — outbox por override de SaveChanges, não por interceptor (2026-07-21)
+
+A decisão original drenava os eventos num `InterceptorDeGravacaoDeOutbox`. O interceptor
+é o ponto de extensão idiomático do EF, mas o efeito ficava invisível no ponto de chamada —
+registrado longe, no contêiner de dependências. Trocamos por um **override explícito de
+`SaveChanges`/`SaveChangesAsync` no próprio `MorpheusDbContext`**: a drenagem é visível
+onde o commit acontece, e a atomicidade (dado e evento na mesma transação) fica óbvia para
+quem lê o contexto. O `MontadorDeMensagensDeOutbox` continua puro e testável fora do EF; o
+override apenas o invoca antes do `base.SaveChanges`. Nada muda no contrato de eventos nem
+na tabela `mensagens_outbox`.
+
+A ordenação em relação ao antigo interceptor de vínculo deixou de importar: o tenant agora
+já vem resolvido na entidade desde a construção (ver emenda do
+[ADR-0003](0003-isolamento-multi-tenant.md)), então o outbox sempre lê a organização já
+definida. Um teste de integração contra Postgres real prova que uma escrita rejeitada no
+commit (FK de organização inexistente) leva junto a linha de outbox enfileirada — nenhum
+evento órfão.
+
 ## Alternativas consideradas
 
 | Alternativa | Por que não |

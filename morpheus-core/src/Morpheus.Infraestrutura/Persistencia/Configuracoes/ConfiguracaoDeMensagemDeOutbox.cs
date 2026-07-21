@@ -22,8 +22,8 @@ internal sealed class ConfiguracaoDeMensagemDeOutbox : IEntityTypeConfiguration<
         mensagem.HasIndex(m => new { m.ProcessadoEm, m.OcorridoEm });
 
         // O outbox NÃO é IPertenceOrganizacao: grava a organização como dado do
-        // envelope, sem passar pelo interceptor de vínculo. Não há FK para
-        // organizacoes de propósito — a mensagem sobrevive à remoção do agregado.
+        // envelope, não como vínculo de tenant. Não há FK para organizacoes de
+        // propósito — a mensagem sobrevive à remoção do agregado.
         mensagem.HasIndex(m => m.OrganizacaoId);
     }
 }

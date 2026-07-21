@@ -41,10 +41,6 @@ public sealed class FiltroDaOrganizacaoTestes
         Assert.Throws<ErroDeOrganizacaoObrigatoria>(() => consulta.DaOrganizacao(Guid.Empty).ToList());
     }
 
-    private static Imovel ImovelVinculado(string codigo, Guid organizacaoId)
-    {
-        var imovel = Imovel.Cadastrar(codigo, "Endereço qualquer, 1", TimeProvider.System).Valor;
-        imovel.AtribuirOrganizacao(organizacaoId);
-        return imovel;
-    }
+    private static Imovel ImovelVinculado(string codigo, Guid organizacaoId) =>
+        Imovel.Cadastrar(new OrganizacaoDona(organizacaoId), codigo, "Endereço qualquer, 1", TimeProvider.System).Valor;
 }

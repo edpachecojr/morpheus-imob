@@ -1,4 +1,5 @@
 using Morpheus.Dominio.Imoveis;
+using Morpheus.Dominio.Organizacoes;
 using Morpheus.Testes.Unitarios.Fakes;
 
 namespace Morpheus.Testes.Unitarios.Imoveis;
@@ -7,11 +8,12 @@ public sealed class ImovelTestes
 {
     private static readonly DateTimeOffset Instante = new(2026, 7, 21, 12, 0, 0, TimeSpan.Zero);
     private static readonly Guid Organizacao = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    private static readonly OrganizacaoDona Tenant = new(Organizacao);
 
     [Fact]
     public void Cadastrar_gera_identidade_e_auditoria_do_relogio()
     {
-        var resultado = Imovel.Cadastrar("AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante));
+        var resultado = Imovel.Cadastrar(Tenant, "AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante));
 
         Assert.True(resultado.Sucesso);
         Assert.NotEqual(Guid.Empty, resultado.Valor.Id);
@@ -19,9 +21,17 @@ public sealed class ImovelTestes
     }
 
     [Fact]
+    public void Cadastrar_vincula_o_imovel_a_organizacao_recebida()
+    {
+        var resultado = Imovel.Cadastrar(Tenant, "AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante));
+
+        Assert.Equal(Organizacao, resultado.Valor.OrganizacaoId);
+    }
+
+    [Fact]
     public void Cadastrar_apara_espacos_do_codigo_e_do_endereco()
     {
-        var resultado = Imovel.Cadastrar("  AP-101  ", "  Rua das Acácias, 100  ", new RelogioFixo(Instante));
+        var resultado = Imovel.Cadastrar(Tenant, "  AP-101  ", "  Rua das Acácias, 100  ", new RelogioFixo(Instante));
 
         Assert.Equal("AP-101", resultado.Valor.CodigoDeReferencia);
         Assert.Equal("Rua das Acácias, 100", resultado.Valor.Endereco);
@@ -30,7 +40,7 @@ public sealed class ImovelTestes
     [Fact]
     public void Cadastrar_sem_codigo_falha_com_codigo_obrigatorio()
     {
-        var resultado = Imovel.Cadastrar("   ", "Rua das Acácias, 100", new RelogioFixo(Instante));
+        var resultado = Imovel.Cadastrar(Tenant, "   ", "Rua das Acácias, 100", new RelogioFixo(Instante));
 
         Assert.True(resultado.Falha);
         Assert.Equal(ErrosDeImovel.CodigoObrigatorio, resultado.Erro);
@@ -39,7 +49,7 @@ public sealed class ImovelTestes
     [Fact]
     public void Cadastrar_sem_endereco_falha_com_endereco_obrigatorio()
     {
-        var resultado = Imovel.Cadastrar("AP-101", "", new RelogioFixo(Instante));
+        var resultado = Imovel.Cadastrar(Tenant, "AP-101", "", new RelogioFixo(Instante));
 
         Assert.True(resultado.Falha);
         Assert.Equal(ErrosDeImovel.EnderecoObrigatorio, resultado.Erro);

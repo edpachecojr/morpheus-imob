@@ -5,7 +5,7 @@ namespace Morpheus.Aplicacao.Organizacoes;
 /// <summary>
 /// Ponto único que traduz a identidade autenticada na organização do contexto.
 /// Sem usuário, a versão estrita falha (default seguro) e a versão opcional
-/// devolve <c>null</c> para o interceptor de escrita decidir o caminho sem sessão.
+/// devolve <c>null</c> para quem enriquece sem exigir sessão (ex.: escopo de log).
 /// </summary>
 public sealed class ContextoDaOrganizacaoAtual : IContextoDaOrganizacaoAtual
 {

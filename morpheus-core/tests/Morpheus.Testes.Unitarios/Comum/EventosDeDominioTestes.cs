@@ -11,11 +11,12 @@ namespace Morpheus.Testes.Unitarios.Comum;
 public sealed class EventosDeDominioTestes
 {
     private static readonly DateTimeOffset Instante = new(2026, 7, 21, 12, 0, 0, TimeSpan.Zero);
+    private static readonly OrganizacaoDona Tenant = new(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
 
     [Fact]
     public void Cadastrar_imovel_registra_evento_com_dados_completos()
     {
-        var imovel = Imovel.Cadastrar("AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
+        var imovel = Imovel.Cadastrar(Tenant, "AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
 
         var evento = Assert.Single(imovel.EventosDeDominio);
         var cadastrado = Assert.IsType<ImovelCadastradoEvento>(evento);
@@ -40,7 +41,7 @@ public sealed class EventosDeDominioTestes
     [Fact]
     public void Cadastro_invalido_nao_registra_evento()
     {
-        var resultado = Imovel.Cadastrar("   ", "Rua das Acácias, 100", new RelogioFixo(Instante));
+        var resultado = Imovel.Cadastrar(Tenant, "   ", "Rua das Acácias, 100", new RelogioFixo(Instante));
 
         Assert.True(resultado.Falha);
     }
@@ -48,7 +49,7 @@ public sealed class EventosDeDominioTestes
     [Fact]
     public void LimparEventos_esvazia_a_fila_de_eventos()
     {
-        var imovel = Imovel.Cadastrar("AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
+        var imovel = Imovel.Cadastrar(Tenant, "AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
 
         imovel.LimparEventos();
 

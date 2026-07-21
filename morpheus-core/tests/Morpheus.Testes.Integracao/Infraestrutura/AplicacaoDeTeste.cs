@@ -12,8 +12,8 @@ namespace Morpheus.Testes.Integracao.Infraestrutura;
 /// Sobe o host real da API (o mesmo <c>Program</c> de produção) apontando o banco
 /// para o Postgres do container de teste e trocando apenas a origem da identidade:
 /// o contexto HTTP dá lugar ao <see cref="ContextoDoUsuarioDeTeste"/>, dirigido
-/// pelos testes. Todo o resto — interceptor, filtro, resolvedor, cache, Npgsql —
-/// é o grafo de produção, para que o isolamento seja provado como ele roda.
+/// pelos testes. Todo o resto — filtro, resolvedor, cache, outbox, Npgsql — é o
+/// grafo de produção, para que o isolamento seja provado como ele roda.
 /// </summary>
 public sealed class AplicacaoDeTeste : WebApplicationFactory<Program>
 {

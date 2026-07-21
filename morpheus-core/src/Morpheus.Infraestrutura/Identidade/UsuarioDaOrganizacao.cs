@@ -8,7 +8,9 @@ namespace Morpheus.Infraestrutura.Identidade;
 /// Usuário do painel persistido pelo IdentityCore, vinculado a uma organização.
 /// Mora na infraestrutura porque carrega o acoplamento ao SDK do Identity — o
 /// domínio conhece apenas <see cref="IPertenceOrganizacao"/> e o <see cref="PapelDoUsuario"/>.
-/// Reusa a mesma regra de vínculo imutável das entidades de domínio.
+/// Diferente das entidades de domínio, o SDK exige construção sem parâmetros, então
+/// o vínculo é definido depois por <see cref="VincularAOrganizacao"/> — ainda
+/// imutável e não vazio, garantido pelo <see cref="OrganizacaoDona"/>.
 /// </summary>
 public sealed class UsuarioDaOrganizacao : IdentityUser<Guid>, IPertenceOrganizacao
 {
@@ -16,8 +18,17 @@ public sealed class UsuarioDaOrganizacao : IdentityUser<Guid>, IPertenceOrganiza
     public PapelDoUsuario Papel { get; private set; }
     public string NomeCompleto { get; private set; } = string.Empty;
 
-    public void AtribuirOrganizacao(Guid organizacaoId)
-        => OrganizacaoId = RegraDeVinculoComOrganizacao.AtribuirImutavel(OrganizacaoId, organizacaoId);
+    /// <summary>
+    /// Vincula o usuário à sua organização (não vazia, garantida pelo VO). Imutável:
+    /// tentar revincular a outra organização é recusado, para o usuário não migrar de
+    /// tenant por engano. Exemplo: <c>usuario.VincularAOrganizacao(new OrganizacaoDona(orgId))</c>.
+    /// </summary>
+    public void VincularAOrganizacao(OrganizacaoDona organizacao)
+    {
+        if (OrganizacaoId != Guid.Empty && OrganizacaoId != organizacao.Valor)
+            throw new ErroDeVinculoDeOrganizacaoImutavel(OrganizacaoId, organizacao.Valor);
+        OrganizacaoId = organizacao.Valor;
+    }
 
     public void DefinirPapel(PapelDoUsuario papel) => Papel = papel;
 

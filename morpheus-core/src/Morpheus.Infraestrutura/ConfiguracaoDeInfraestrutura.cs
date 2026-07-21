@@ -36,24 +36,19 @@ public static class ConfiguracaoDeInfraestrutura
 
     private static void AdicionarBanco(IServiceCollection servicos, string stringDeConexao)
     {
-        servicos.AddScoped<InterceptorDeEscritaPorOrganizacao>();
         AdicionarOutbox(servicos);
 
-        servicos.AddDbContext<MorpheusDbContext>((provedor, opcoes) =>
+        // O MontadorDeMensagensDeOutbox chega ao contexto por injeção de construtor:
+        // o SaveChanges do próprio MorpheusDbContext drena os eventos para o outbox.
+        servicos.AddDbContext<MorpheusDbContext>(opcoes =>
             opcoes.UseNpgsql(stringDeConexao)
-                  .UseSnakeCaseNamingConvention()
-                  // Ordem importa: o vínculo por organização carimba o tenant antes
-                  // de o outbox drenar os eventos, que já leem a entidade carimbada.
-                  .AddInterceptors(
-                      provedor.GetRequiredService<InterceptorDeEscritaPorOrganizacao>(),
-                      provedor.GetRequiredService<InterceptorDeGravacaoDeOutbox>()));
+                  .UseSnakeCaseNamingConvention());
     }
 
     private static void AdicionarOutbox(IServiceCollection servicos)
     {
         servicos.AddSingleton<ISerializadorDeEvento, SerializadorDeEventoComSystemTextJson>();
         servicos.AddScoped<MontadorDeMensagensDeOutbox>();
-        servicos.AddScoped<InterceptorDeGravacaoDeOutbox>();
     }
 
     private static void AdicionarIdentidade(IServiceCollection servicos)

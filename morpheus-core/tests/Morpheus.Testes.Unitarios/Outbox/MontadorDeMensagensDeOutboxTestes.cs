@@ -9,7 +9,7 @@ namespace Morpheus.Testes.Unitarios.Outbox;
 public sealed class MontadorDeMensagensDeOutboxTestes
 {
     private static readonly DateTimeOffset Instante = new(2026, 7, 21, 12, 0, 0, TimeSpan.Zero);
-    private static readonly Guid OrganizacaoId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+    private static readonly Guid TenantId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
 
     private readonly MontadorDeMensagensDeOutbox _montador = new(new SerializadorDeEventoFake());
 
@@ -21,7 +21,7 @@ public sealed class MontadorDeMensagensDeOutboxTestes
         var mensagens = _montador.Drenar([imovel]);
 
         var mensagem = Assert.Single(mensagens);
-        Assert.Equal(OrganizacaoId, mensagem.OrganizacaoId);
+        Assert.Equal(TenantId, mensagem.OrganizacaoId);
         Assert.Equal(nameof(ImovelCadastradoEvento), mensagem.TipoDoEvento);
         Assert.Equal(Instante, mensagem.OcorridoEm);
         Assert.Null(mensagem.ProcessadoEm);
@@ -53,24 +53,22 @@ public sealed class MontadorDeMensagensDeOutboxTestes
     public void Drenar_ignora_entidade_sem_eventos()
     {
         var semEventos = Imovel.Rehidratar(
-            Guid.NewGuid(), OrganizacaoId, "AP-200", "Rua Sem Evento, 200", Instante, Instante);
+            Guid.NewGuid(), TenantId, "AP-200", "Rua Sem Evento, 200", Instante, Instante);
 
         Assert.Empty(_montador.Drenar([semEventos]));
     }
 
     [Fact]
-    public void Drenar_recusa_evento_de_entidade_sem_organizacao_atribuida()
+    public void Drenar_recusa_portadora_de_evento_sem_tenant_resolvivel()
     {
-        // Imóvel cadastrado mas ainda não carimbado com o tenant: outbox órfão.
-        var semTenant = Imovel.Cadastrar("AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
+        // As entidades reais tornam isto impossível (tenant obrigatório na construção);
+        // o ramo defensivo ainda recusa uma portadora que não expõe organização.
+        var evento = new ImovelCadastradoEvento(Guid.NewGuid(), "AP-101", "Rua das Acácias, 100", Instante);
+        var semTenant = new PortadoraDeEventoSemTenant(evento);
 
-        Assert.Throws<ArgumentException>(() => _montador.Drenar([semTenant]));
+        Assert.Throws<InvalidOperationException>(() => _montador.Drenar([semTenant]));
     }
 
-    private static Imovel ImovelDaOrganizacao()
-    {
-        var imovel = Imovel.Cadastrar("AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
-        imovel.AtribuirOrganizacao(OrganizacaoId);
-        return imovel;
-    }
+    private static Imovel ImovelDaOrganizacao() =>
+        Imovel.Cadastrar(new OrganizacaoDona(TenantId), "AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
 }

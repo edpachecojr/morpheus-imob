@@ -14,8 +14,8 @@ public interface IContextoDaOrganizacaoAtual
 
     /// <summary>
     /// Organização do contexto, ou <c>null</c> quando não há usuário autenticado.
-    /// Usado pelo interceptor de escrita, que tolera bootstrap e jobs com vínculo
-    /// explícito em vez de exigir sempre uma sessão.
+    /// Para quem enriquece sem exigir sessão (ex.: escopo de log), que precisa
+    /// tolerar bootstrap e jobs em vez de falhar fora de uma requisição.
     /// </summary>
     Task<Guid?> ObterOrganizacaoIdOuNuloAsync(CancellationToken cancelamento);
 }

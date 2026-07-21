@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Morpheus.Dominio.Imoveis;
+using Morpheus.Dominio.Organizacoes;
 using Morpheus.Infraestrutura.Persistencia;
 using Morpheus.Testes.Integracao.Infraestrutura;
 
@@ -26,8 +27,8 @@ public sealed class IntegridadeReferencialEntreOrganizacoesTestes : TesteDeInteg
             SemSessao(async provedor =>
             {
                 var banco = provedor.GetRequiredService<MorpheusDbContext>();
-                var imovel = Imovel.Cadastrar("AP-700", "Rua Fantasma, 700", TimeProvider.System).Valor;
-                imovel.AtribuirOrganizacao(organizacaoInexistente);
+                var imovel = Imovel.Cadastrar(
+                    new OrganizacaoDona(organizacaoInexistente), "AP-700", "Rua Fantasma, 700", TimeProvider.System).Valor;
                 banco.Imoveis.Add(imovel);
                 await banco.SaveChangesAsync();
             }));
