@@ -16,7 +16,11 @@ internal sealed class ConfiguracaoDeUsuarioDaOrganizacao : IEntityTypeConfigurat
 
         usuario.Property(u => u.OrganizacaoId).IsRequired();
         usuario.Property(u => u.NomeCompleto).HasMaxLength(200).IsRequired();
-        usuario.Property(u => u.Papel).HasConversion<string>().HasMaxLength(30).IsRequired();
+
+        // Papel NÃO é coluna daqui: mora em user_roles, do próprio Identity
+        // (ADR-0010). Eventos de domínio são transientes — o outbox os drena
+        // antes do commit.
+        usuario.Ignore(u => u.EventosDeDominio);
 
         // Índice do vínculo: a busca "organização do usuário" roda em toda
         // requisição (antes do cache aquecer) e precisa ser barata.
