@@ -15,8 +15,15 @@ _Atualizado em 2026-07-21._
     os 3 `<a definir>` de `fundacao/stack.md`.
   - ✅ H2 — Projeto sobe e suíte roda: host com `/health`, validação de variável
     de ambiente obrigatória, `dotnet test` único e formatador aplicado.
-  - ☐ H3 — CI: não há `.github/workflows`.
-  - ☐ H4 — Fila de jobs e agendador: não implementados.
+  - ✅ H3 — CI: `.github/workflows/ci.yml` roda formatação + análise estática
+    (`dotnet format`), build com `-warnaserror` e testes **unitários** em todo
+    push/PR; depois de passar, build da imagem Docker (`Dockerfile` multi-stage).
+    Testes de integração ficam fora do pipeline de propósito (exigem Postgres).
+  - ◐ H4 — Orientação a eventos e outbox (lado de escrita): `EntidadeBase` com
+    identidade, auditoria (VO `DadosDeAuditoria`) e eventos de domínio;
+    `InterceptorDeGravacaoDeOutbox` grava o evento em `mensagens_outbox` na mesma
+    transação do dado ([ADR-0009](../adrs/0009-eventos-de-dominio-e-outbox.md)).
+    **Falta** a drenagem: dispatcher, filas, agendador e as garantias de job.
 - ◐ **E1-F1 — Tenant e isolamento**
   - ✅ H1 — Isolamento na camada de dados: interceptor de escrita + filtro
     explícito de leitura, provados por testes de integração contra Postgres.
@@ -50,7 +57,11 @@ _Atualizado em 2026-07-21._
 - Observabilidade agnóstica de fornecedor: Serilog (log CLEF) + OpenTelemetry
   (traces OTLP), Seq local, correlação pronta para Datadog e log transversal por
   decorador no DI (OCP), sem mediator — [ADR-0008](../adrs/0008-observabilidade-agnostica.md).
+- Orientação a eventos com outbox no lado de escrita: `EntidadeBase` acumula
+  eventos de domínio (com dados completos), gravados na mesma transação da escrita;
+  drenagem (dispatcher/filas) fora do MVP — [ADR-0009](../adrs/0009-eventos-de-dominio-e-outbox.md).
 
 ## Próximo passo
 
-Fechar a **E1-F0** (CI e fila/agendador) antes de abrir novas estórias de F1.
+Fechar a **E1-F0**: caminho crítico completo (H1) e a drenagem do outbox —
+dispatcher, filas e agendador (H4) — antes de abrir novas estórias de F1.

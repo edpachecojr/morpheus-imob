@@ -98,3 +98,28 @@ Os testes unitários rodam em milissegundos, sem banco e sem rede (F.I.R.S.T.).
 Os testes de integração sobem um PostgreSQL efêmero via Testcontainers e provam
 o isolamento por organização contra o banco real — por isso **exigem Docker**
 (o mesmo pré-requisito de subir o ambiente local).
+
+## CI
+
+`.github/workflows/ci.yml` roda em todo push e PR (E1-F0-H3):
+
+1. `dotnet format --verify-no-changes` — formatação e análise estática.
+2. `dotnet build -warnaserror` — build com avisos tratados como erro.
+3. **Testes unitários** (`Morpheus.Testes.Unitarios`), sem banco e sem rede.
+4. Só depois de tudo passar, **build da imagem Docker** (`Dockerfile` multi-stage).
+
+Os **testes de integração ficam fora do pipeline de propósito**: exigem Postgres
+via Testcontainers, o que contraria "CI sem serviço externo real". Rode-os
+localmente com `dotnet test` (que executa a suíte inteira).
+
+## Eventos de domínio e outbox
+
+Toda entidade herda de `EntidadeBase`: identidade, auditoria (`DadosDeAuditoria`,
+com `CriadoEm`/`AtualizadoEm`) e uma lista de eventos de domínio. Uma ação de
+escrita (`Imovel.Cadastrar`, `Organizacao.Fundar`) registra um evento com os
+**dados de negócio completos**. No `SaveChanges`, o `InterceptorDeGravacaoDeOutbox`
+grava esses eventos na tabela `mensagens_outbox` **na mesma transação** do dado —
+o lado de escrita do Outbox Pattern ([ADR-0009](../docs/adrs/0009-eventos-de-dominio-e-outbox.md)).
+
+A drenagem do outbox (dispatcher, filas, pub/sub) está fora do MVP: a coluna
+`processado_em` já existe, nula, como gancho para o futuro consumidor.

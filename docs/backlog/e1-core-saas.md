@@ -18,8 +18,10 @@ nenhum outro épico vaza dado, e refazê-lo depois custa migração de dados.
 >   falso → persistência com tenant → leitura mobile) ainda não provado; só a
 >   fatia de isolamento com Postgres real está coberta. Faltam também os 3
 >   `<a definir>` de [stack.md](../fundacao/stack.md).
-> - **H3** — pipeline de CI (`.github/workflows`) inexistente.
-> - **H4** — fila de jobs e agendador não implementados.
+> - **H4** — só o lado de escrita foi entregue (eventos de domínio + gravação no
+>   outbox, [ADR-0009](../adrs/0009-eventos-de-dominio-e-outbox.md)). Dispatcher,
+>   filas, agendador e as garantias de job (retente/idempotência/fila morta)
+>   seguem pendentes.
 
 ### ◐ E1-F0-H1 `[MVP]` · 3 pts — Spike de stack
 **Como** time, **quero** provar o caminho crítico numa stack candidata, **para**
@@ -43,7 +45,7 @@ decidir com evidência em vez de preferência.
 - **E** a aplicação **falha ao subir** com variável de ambiente faltando,
   informando qual falta e o formato esperado.
 
-### ☐ E1-F0-H3 `[MVP]` · 2 pts — CI barra o que não presta
+### ✅ E1-F0-H3 `[MVP]` · 2 pts — CI barra o que não presta
 **Como** time, **quero** verificação automática em todo push, **para** que a
 regra não dependa de alguém lembrar na revisão.
 
@@ -52,15 +54,42 @@ regra não dependa de alguém lembrar na revisão.
 - **E** falha em qualquer etapa impede o merge.
 - **E** a CI roda sem acesso a serviço externo real.
 
-### ☐ E1-F0-H4 `[MVP]` · 3 pts — Fila de jobs e agendador
-**Como** sistema, **quero** executar trabalho assíncrono e agendado, **para**
-sustentar dunning, lembretes e relatórios.
+> **✅ Feito:** `.github/workflows/ci.yml` roda em todo push e PR. Job 1 —
+> `dotnet format --verify-no-changes` (formatação + análise), `dotnet build
+> -warnaserror` (avisos viram erros) e os **testes unitários** (sem banco, sem
+> rede). Job 2 — build da imagem Docker, só depois de o job 1 passar (`needs`).
+> Os **testes de integração ficam fora do pipeline de propósito**: exigem Postgres
+> via Testcontainers, o que contraria "CI sem serviço externo real". A imagem tem
+> `Dockerfile` multi-stage (SDK compila, runtime ASP.NET carrega), com
+> `.dockerignore` que barra `.env` de entrar na imagem.
 
-- **Dado** um job enfileirado, **quando** ele falhar, **então** é retentado com
-  backoff até um teto e, esgotado, vai para fila morta com alerta.
-- **E** o mesmo job processado duas vezes produz **um** efeito (idempotência).
-- **E** job sem `tenant_id` no payload falha ao iniciar — nunca roda "global".
-- **E** existe um job agendado de exemplo com teste usando relógio falso.
+### ◐ E1-F0-H4 `[MVP]` · 3 pts — Orientação a eventos e outbox (lado de escrita)
+**Como** sistema, **quero** registrar de forma durável e atômica todo fato de
+escrita, **para** sustentar reações assíncronas (dunning, lembretes, relatórios)
+sem perder o fato entre gravar e anunciar.
+
+> **Reformulada.** A ideia original — "fila de jobs e agendador" — amadureceu para
+> a fundação orientada a eventos que a antecede ([ADR-0009](../adrs/0009-eventos-de-dominio-e-outbox.md)).
+> A fila/agendador em si continua pendente (ver "Fora de escopo" abaixo).
+
+- **Dado** uma entidade, **quando** ela nasce, **então** carrega identidade,
+  auditoria (`CriadoEm`/`AtualizadoEm`) e uma lista de eventos de domínio, tudo
+  concentrado numa entidade base.
+- **E** uma ação de escrita (`Imovel.Cadastrar`, `Organizacao.Fundar`) registra um
+  evento com os **dados de negócio completos**, não só um id.
+- **E** o `SaveChanges` grava o evento na tabela `mensagens_outbox` **na mesma
+  transação** do dado — uma escrita rejeitada não deixa evento órfão.
+- **E** o evento carrega o tenant no envelope; outbox sem organização é recusado.
+
+> **✅ Feito:** `EntidadeBase` + value object `DadosDeAuditoria`; eventos
+> `ImovelCadastradoEvento` e `OrganizacaoFundadaEvento`; `InterceptorDeGravacaoDeOutbox`
+> gravando na mesma transação, com o montador puro testado por unidade e a
+> atomicidade provada por teste de integração.
+>
+> **Fora de escopo (estória futura):** dispatcher/publicadores, filas e consumidores,
+> agendador, e as garantias de job (retente com backoff, fila morta com alerta,
+> idempotência, job agendado de exemplo com relógio falso). A coluna `processado_em`
+> já existe, nula, como gancho para essa drenagem.
 
 ---
 
