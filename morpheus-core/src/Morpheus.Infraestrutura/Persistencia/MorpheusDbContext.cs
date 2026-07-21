@@ -5,6 +5,7 @@ using Morpheus.Dominio.Imoveis;
 using Morpheus.Dominio.Organizacoes;
 using Morpheus.Infraestrutura.Identidade;
 using Morpheus.Infraestrutura.Persistencia.Configuracoes;
+using Morpheus.Infraestrutura.Persistencia.Outbox;
 
 namespace Morpheus.Infraestrutura.Persistencia;
 
@@ -22,12 +23,14 @@ public sealed class MorpheusDbContext : IdentityDbContext<UsuarioDaOrganizacao, 
 
     public DbSet<Organizacao> Organizacoes => Set<Organizacao>();
     public DbSet<Imovel> Imoveis => Set<Imovel>();
+    public DbSet<MensagemDeOutbox> MensagensDeOutbox => Set<MensagemDeOutbox>();
 
     protected override void OnModelCreating(ModelBuilder construtor)
     {
         base.OnModelCreating(construtor);
         construtor.ApplyConfiguration(new ConfiguracaoDeOrganizacao());
         construtor.ApplyConfiguration(new ConfiguracaoDeImovel());
+        construtor.ApplyConfiguration(new ConfiguracaoDeMensagemDeOutbox());
         construtor.ApplyConfiguration(new ConfiguracaoDeUsuarioDaOrganizacao());
         ConfiguracaoDasTabelasDaIdentidade.Aplicar(construtor);
     }

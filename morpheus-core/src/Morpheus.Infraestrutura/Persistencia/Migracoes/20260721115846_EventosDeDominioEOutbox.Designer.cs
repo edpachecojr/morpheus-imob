@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Morpheus.Infraestrutura.Persistencia;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Morpheus.Infraestrutura.Persistencia.Migracoes
 {
     [DbContext(typeof(MorpheusDbContext))]
-    partial class MorpheusDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260721115846_EventosDeDominioEOutbox")]
+    partial class EventosDeDominioEOutbox
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

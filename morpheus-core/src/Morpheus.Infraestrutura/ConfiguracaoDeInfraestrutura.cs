@@ -8,6 +8,7 @@ using Morpheus.Infraestrutura.Imoveis;
 using Morpheus.Infraestrutura.Observabilidade;
 using Morpheus.Infraestrutura.Organizacoes;
 using Morpheus.Infraestrutura.Persistencia;
+using Morpheus.Infraestrutura.Persistencia.Outbox;
 
 namespace Morpheus.Infraestrutura;
 
@@ -36,10 +37,23 @@ public static class ConfiguracaoDeInfraestrutura
     private static void AdicionarBanco(IServiceCollection servicos, string stringDeConexao)
     {
         servicos.AddScoped<InterceptorDeEscritaPorOrganizacao>();
+        AdicionarOutbox(servicos);
+
         servicos.AddDbContext<MorpheusDbContext>((provedor, opcoes) =>
             opcoes.UseNpgsql(stringDeConexao)
                   .UseSnakeCaseNamingConvention()
-                  .AddInterceptors(provedor.GetRequiredService<InterceptorDeEscritaPorOrganizacao>()));
+                  // Ordem importa: o vínculo por organização carimba o tenant antes
+                  // de o outbox drenar os eventos, que já leem a entidade carimbada.
+                  .AddInterceptors(
+                      provedor.GetRequiredService<InterceptorDeEscritaPorOrganizacao>(),
+                      provedor.GetRequiredService<InterceptorDeGravacaoDeOutbox>()));
+    }
+
+    private static void AdicionarOutbox(IServiceCollection servicos)
+    {
+        servicos.AddSingleton<ISerializadorDeEvento, SerializadorDeEventoComSystemTextJson>();
+        servicos.AddScoped<MontadorDeMensagensDeOutbox>();
+        servicos.AddScoped<InterceptorDeGravacaoDeOutbox>();
     }
 
     private static void AdicionarIdentidade(IServiceCollection servicos)

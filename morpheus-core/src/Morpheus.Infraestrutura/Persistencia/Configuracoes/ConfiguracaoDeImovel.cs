@@ -13,8 +13,14 @@ internal sealed class ConfiguracaoDeImovel : IEntityTypeConfiguration<Imovel>
         imovel.HasKey(i => i.Id);
         imovel.Property(i => i.CodigoDeReferencia).HasMaxLength(60).IsRequired();
         imovel.Property(i => i.Endereco).HasMaxLength(300).IsRequired();
-        imovel.Property(i => i.CadastradoEm).IsRequired();
         imovel.Property(i => i.OrganizacaoId).IsRequired();
+
+        // Auditoria mora nas colunas do próprio imóvel (owned, sem tabela à parte).
+        ConfiguracaoDeAuditoria.Mapear(imovel);
+
+        // CadastradoEm é projeção de Auditoria.CriadoEm; eventos são transientes.
+        imovel.Ignore(i => i.CadastradoEm);
+        imovel.Ignore(i => i.EventosDeDominio);
 
         // Índice do vínculo de organização: acelera o filtro presente em toda leitura.
         imovel.HasIndex(i => i.OrganizacaoId);
