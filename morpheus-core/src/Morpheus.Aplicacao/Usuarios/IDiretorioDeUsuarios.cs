@@ -1,0 +1,20 @@
+using Morpheus.Aplicacao.Organizacoes;
+
+namespace Morpheus.Aplicacao.Usuarios;
+
+/// <summary>
+/// Consulta de usuários do painel. A busca por e-mail é o insumo do login e da
+/// recuperação de senha; a listagem é sempre restrita à organização do contexto —
+/// não existe consulta de usuário sem tenant, nem por parâmetro (ADR-0003).
+/// </summary>
+public interface IDiretorioDeUsuarios
+{
+    /// <summary>Usuário do e-mail informado, ou <c>null</c> se não houver. Nunca revele o resultado ao cliente.</summary>
+    Task<UsuarioDoPainel?> BuscarPorEmailAsync(string email, CancellationToken cancelamento);
+
+    /// <summary>
+    /// Usuários da organização do contexto, resolvida por
+    /// <see cref="IContextoDaOrganizacaoAtual"/> — nunca de parâmetro da requisição.
+    /// </summary>
+    Task<IReadOnlyList<UsuarioDoPainel>> ListarDaOrganizacaoAsync(CancellationToken cancelamento);
+}
