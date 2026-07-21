@@ -9,5 +9,9 @@ namespace Morpheus.Aplicacao.Organizacoes;
 /// </summary>
 public interface IRepositorioDeOrganizacoes
 {
+    /// <summary>
+    /// Persiste uma organização nova.
+    /// Exemplo: <c>await repositorio.AdicionarAsync(organizacao, cancelamento)</c>.
+    /// </summary>
     Task AdicionarAsync(Organizacao organizacao, CancellationToken cancelamento);
 }

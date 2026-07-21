@@ -9,12 +9,17 @@ namespace Morpheus.Aplicacao.Usuarios;
 /// </summary>
 public interface IDiretorioDeUsuarios
 {
-    /// <summary>Usuário do e-mail informado, ou <c>null</c> se não houver. Nunca revele o resultado ao cliente.</summary>
+    /// <summary>
+    /// Usuário do e-mail informado, ou <c>null</c> se não houver. Nunca revele o
+    /// resultado ao cliente.
+    /// Exemplo: <c>await diretorio.BuscarPorEmailAsync(email, cancelamento)</c>.
+    /// </summary>
     Task<UsuarioDoPainel?> BuscarPorEmailAsync(string email, CancellationToken cancelamento);
 
     /// <summary>
     /// Usuários da organização do contexto, resolvida por
     /// <see cref="IContextoDaOrganizacaoAtual"/> — nunca de parâmetro da requisição.
+    /// Exemplo: <c>await diretorio.ListarDaOrganizacaoAsync(cancelamento)</c>.
     /// </summary>
     Task<IReadOnlyList<UsuarioDoPainel>> ListarDaOrganizacaoAsync(CancellationToken cancelamento);
 }

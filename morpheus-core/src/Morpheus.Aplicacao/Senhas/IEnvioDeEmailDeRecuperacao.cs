@@ -11,5 +11,9 @@ namespace Morpheus.Aplicacao.Senhas;
 /// </summary>
 public interface IEnvioDeEmailDeRecuperacao
 {
+    /// <summary>
+    /// Envia o e-mail com o link de redefinição de senha.
+    /// Exemplo: <c>await envio.EnviarAsync(email, nomeCompleto, token, cancelamento)</c>.
+    /// </summary>
     Task EnviarAsync(string email, string nomeCompleto, string token, CancellationToken cancelamento);
 }

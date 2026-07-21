@@ -7,5 +7,9 @@ namespace Morpheus.Aplicacao.Imoveis;
 /// </summary>
 public interface IConsultaDeImoveisResumidos
 {
+    /// <summary>
+    /// Lista os imóveis resumidos da organização do contexto.
+    /// Exemplo: <c>await consulta.ListarAsync(cancelamento)</c>.
+    /// </summary>
     Task<IReadOnlyList<ImovelResumo>> ListarAsync(CancellationToken cancelamento);
 }

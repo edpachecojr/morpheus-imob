@@ -9,5 +9,9 @@ namespace Morpheus.Infraestrutura.Persistencia;
 /// </summary>
 public interface IFabricaDeConexao
 {
+    /// <summary>
+    /// Abre uma conexão nova e já pronta para uso.
+    /// Exemplo: <c>await using var conexao = await fabrica.AbrirAsync(cancelamento)</c>.
+    /// </summary>
     Task<IDbConnection> AbrirAsync(CancellationToken cancelamento);
 }

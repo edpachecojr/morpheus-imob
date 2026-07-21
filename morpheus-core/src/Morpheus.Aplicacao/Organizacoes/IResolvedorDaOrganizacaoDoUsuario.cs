@@ -7,5 +7,9 @@ namespace Morpheus.Aplicacao.Organizacoes;
 /// </summary>
 public interface IResolvedorDaOrganizacaoDoUsuario
 {
+    /// <summary>
+    /// Id da organização do usuário, do cache ou, na ausência, do banco.
+    /// Exemplo: <c>await resolvedor.ResolverAsync(usuarioId, cancelamento)</c>.
+    /// </summary>
     Task<Guid> ResolverAsync(Guid usuarioId, CancellationToken cancelamento);
 }

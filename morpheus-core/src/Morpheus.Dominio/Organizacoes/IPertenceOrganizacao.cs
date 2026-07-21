@@ -9,5 +9,9 @@ namespace Morpheus.Dominio.Organizacoes;
 /// </summary>
 public interface IPertenceOrganizacao
 {
+    /// <summary>
+    /// Id da organização dona da entidade.
+    /// Exemplo: <c>consulta.Where(e => e.OrganizacaoId == organizacaoAtual)</c>.
+    /// </summary>
     Guid OrganizacaoId { get; }
 }
