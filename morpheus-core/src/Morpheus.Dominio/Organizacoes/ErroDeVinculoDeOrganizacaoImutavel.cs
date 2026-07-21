@@ -12,8 +12,7 @@ public sealed class ErroDeVinculoDeOrganizacaoImutavel : ErroDeRegraDeNegocio
     public Guid VinculoRecusado { get; }
 
     public ErroDeVinculoDeOrganizacaoImutavel(Guid vinculoAtual, Guid vinculoRecusado)
-        : base($"Vínculo de organização é imutável: entidade já pertence a {vinculoAtual} " +
-               $"e não pode ser revinculada a {vinculoRecusado}.")
+        : base(ErrosDeIsolamento.VinculoImutavel(vinculoAtual, vinculoRecusado))
     {
         VinculoAtual = vinculoAtual;
         VinculoRecusado = vinculoRecusado;

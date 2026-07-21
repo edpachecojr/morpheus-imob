@@ -14,7 +14,7 @@ public static class FiltroDaOrganizacao
         where T : IPertenceOrganizacao
     {
         if (organizacaoId == Guid.Empty)
-            throw new ArgumentException("OrganizacaoId não pode ser vazio.", nameof(organizacaoId));
+            throw new ErroDeOrganizacaoObrigatoria("FiltroDaOrganizacao");
         return consulta.Where(entidade => entidade.OrganizacaoId == organizacaoId);
     }
 }

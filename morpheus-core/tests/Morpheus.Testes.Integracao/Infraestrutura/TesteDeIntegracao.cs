@@ -54,7 +54,7 @@ public abstract class TesteDeIntegracao
         using var escopo = Ambiente.Aplicacao.Services.CreateScope();
         var banco = escopo.ServiceProvider.GetRequiredService<MorpheusDbContext>();
 
-        var organizacao = new Organizacao(nome, TimeProvider.System);
+        var organizacao = Organizacao.Fundar(nome, TimeProvider.System).Valor;
         banco.Organizacoes.Add(organizacao);
         await banco.SaveChangesAsync();
 
@@ -72,7 +72,7 @@ public abstract class TesteDeIntegracao
         using var escopo = Ambiente.Aplicacao.Services.CreateScope();
         var banco = escopo.ServiceProvider.GetRequiredService<MorpheusDbContext>();
 
-        var imovel = new Imovel(codigo, endereco, TimeProvider.System);
+        var imovel = Imovel.Cadastrar(codigo, endereco, TimeProvider.System).Valor;
         imovel.AtribuirOrganizacao(organizacaoId);
         banco.Imoveis.Add(imovel);
         await banco.SaveChangesAsync();

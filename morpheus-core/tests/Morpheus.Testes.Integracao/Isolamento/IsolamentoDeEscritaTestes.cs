@@ -26,7 +26,7 @@ public sealed class IsolamentoDeEscritaTestes : TesteDeIntegracao
             ComoUsuario(aurora.UsuarioId, async provedor =>
             {
                 var banco = provedor.GetRequiredService<MorpheusDbContext>();
-                var imovelDeOutraOrganizacao = new Imovel("AP-500", "Rua Bela Vista, 500", TimeProvider.System);
+                var imovelDeOutraOrganizacao = Imovel.Cadastrar("AP-500", "Rua Bela Vista, 500", TimeProvider.System).Valor;
                 imovelDeOutraOrganizacao.AtribuirOrganizacao(belaVista.OrganizacaoId);
                 banco.Imoveis.Add(imovelDeOutraOrganizacao);
                 await banco.SaveChangesAsync();
@@ -43,7 +43,7 @@ public sealed class IsolamentoDeEscritaTestes : TesteDeIntegracao
             SemSessao(async provedor =>
             {
                 var banco = provedor.GetRequiredService<MorpheusDbContext>();
-                banco.Imoveis.Add(new Imovel("AP-600", "Rua Sem Dono, 600", TimeProvider.System));
+                banco.Imoveis.Add(Imovel.Cadastrar("AP-600", "Rua Sem Dono, 600", TimeProvider.System).Valor);
                 await banco.SaveChangesAsync();
             }));
     }

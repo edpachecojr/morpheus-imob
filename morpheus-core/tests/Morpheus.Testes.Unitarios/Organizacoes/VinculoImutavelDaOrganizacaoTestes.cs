@@ -8,7 +8,7 @@ public sealed class VinculoImutavelDaOrganizacaoTestes
     private static readonly Guid Organizacao = Guid.Parse("77777777-7777-7777-7777-777777777777");
     private static readonly Guid OutraOrganizacao = Guid.Parse("88888888-8888-8888-8888-888888888888");
 
-    private static Imovel NovoImovel() => new("AP-202", "Av. Central, 200", TimeProvider.System);
+    private static Imovel NovoImovel() => Imovel.Cadastrar("AP-202", "Av. Central, 200", TimeProvider.System).Valor;
 
     [Fact]
     public void Atribuir_a_mesma_organizacao_duas_vezes_e_idempotente()
@@ -39,6 +39,6 @@ public sealed class VinculoImutavelDaOrganizacaoTestes
     {
         var imovel = NovoImovel();
 
-        Assert.Throws<ArgumentException>(() => imovel.AtribuirOrganizacao(Guid.Empty));
+        Assert.Throws<ErroDeOrganizacaoObrigatoria>(() => imovel.AtribuirOrganizacao(Guid.Empty));
     }
 }

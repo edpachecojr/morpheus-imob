@@ -1,4 +1,5 @@
 using Morpheus.Dominio.Imoveis;
+using Morpheus.Dominio.Organizacoes;
 using Morpheus.Infraestrutura.Organizacoes;
 
 namespace Morpheus.Testes.Unitarios.Imoveis;
@@ -37,12 +38,12 @@ public sealed class FiltroDaOrganizacaoTestes
     {
         var consulta = Array.Empty<Imovel>().AsQueryable();
 
-        Assert.Throws<ArgumentException>(() => consulta.DaOrganizacao(Guid.Empty).ToList());
+        Assert.Throws<ErroDeOrganizacaoObrigatoria>(() => consulta.DaOrganizacao(Guid.Empty).ToList());
     }
 
     private static Imovel ImovelVinculado(string codigo, Guid organizacaoId)
     {
-        var imovel = new Imovel(codigo, "Endereço qualquer, 1", TimeProvider.System);
+        var imovel = Imovel.Cadastrar(codigo, "Endereço qualquer, 1", TimeProvider.System).Valor;
         imovel.AtribuirOrganizacao(organizacaoId);
         return imovel;
     }

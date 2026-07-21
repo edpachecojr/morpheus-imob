@@ -12,8 +12,7 @@ public sealed class ErroDeEscritaSemOrganizacao : ErroDeRegraDeNegocio
     public string Entidade { get; }
 
     public ErroDeEscritaSemOrganizacao(string entidade)
-        : base($"Escrita rejeitada: entidade '{entidade}' não tem organização e não há " +
-               "contexto de organização para carimbá-la.")
+        : base(ErrosDeIsolamento.EscritaSemOrganizacao(entidade))
     {
         Entidade = entidade;
     }

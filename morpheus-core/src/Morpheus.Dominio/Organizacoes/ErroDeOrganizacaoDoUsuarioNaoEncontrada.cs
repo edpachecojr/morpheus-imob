@@ -1,4 +1,5 @@
 using Morpheus.Dominio.Erros;
+using Morpheus.Dominio.Usuarios;
 
 namespace Morpheus.Dominio.Organizacoes;
 
@@ -12,7 +13,7 @@ public sealed class ErroDeOrganizacaoDoUsuarioNaoEncontrada : ErroDeRegraDeNegoc
     public Guid UsuarioId { get; }
 
     public ErroDeOrganizacaoDoUsuarioNaoEncontrada(Guid usuarioId)
-        : base($"Nenhuma organização vinculada ao usuário {usuarioId}.")
+        : base(ErrosDeUsuario.OrganizacaoNaoEncontrada(usuarioId))
     {
         UsuarioId = usuarioId;
     }

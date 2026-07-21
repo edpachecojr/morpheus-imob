@@ -15,7 +15,7 @@ public static class RegraDeVinculoComOrganizacao
     public static Guid AtribuirImutavel(Guid vinculoAtual, Guid novoVinculo)
     {
         if (novoVinculo == Guid.Empty)
-            throw new ArgumentException("OrganizacaoId não pode ser vazio.", nameof(novoVinculo));
+            throw new ErroDeOrganizacaoObrigatoria("AtribuirImutavel");
         if (vinculoAtual == novoVinculo)
             return vinculoAtual;
         if (vinculoAtual != Guid.Empty)
@@ -30,7 +30,7 @@ public static class RegraDeVinculoComOrganizacao
     public static void GarantirVinculo(IPertenceOrganizacao entidade, Guid organizacaoDoContexto)
     {
         if (organizacaoDoContexto == Guid.Empty)
-            throw new ArgumentException("Contexto de organização ausente na escrita.", nameof(organizacaoDoContexto));
+            throw new ErroDeOrganizacaoObrigatoria("GarantirVinculo");
         if (entidade.OrganizacaoId == organizacaoDoContexto)
             return;
         if (entidade.OrganizacaoId != Guid.Empty)

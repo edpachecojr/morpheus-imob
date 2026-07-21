@@ -8,7 +8,7 @@ public sealed class RegraDeVinculoComOrganizacaoTestes
     private static readonly Guid OrganizacaoDoContexto = Guid.Parse("55555555-5555-5555-5555-555555555555");
     private static readonly Guid OutraOrganizacao = Guid.Parse("66666666-6666-6666-6666-666666666666");
 
-    private static Imovel NovoImovel() => new("AP-101", "Rua das Acácias, 100", TimeProvider.System);
+    private static Imovel NovoImovel() => Imovel.Cadastrar("AP-101", "Rua das Acácias, 100", TimeProvider.System).Valor;
 
     [Fact]
     public void Carimba_o_vinculo_ausente_com_a_organizacao_do_contexto()
@@ -49,7 +49,7 @@ public sealed class RegraDeVinculoComOrganizacaoTestes
     {
         var imovel = NovoImovel();
 
-        Assert.Throws<ArgumentException>(
+        Assert.Throws<ErroDeOrganizacaoObrigatoria>(
             () => RegraDeVinculoComOrganizacao.GarantirVinculo(imovel, Guid.Empty));
     }
 

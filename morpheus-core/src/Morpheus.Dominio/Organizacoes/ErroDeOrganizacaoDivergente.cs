@@ -12,8 +12,7 @@ public sealed class ErroDeOrganizacaoDivergente : ErroDeRegraDeNegocio
     public Guid OrganizacaoDoContexto { get; }
 
     public ErroDeOrganizacaoDivergente(Guid organizacaoDaEntidade, Guid organizacaoDoContexto)
-        : base($"Escrita rejeitada: entidade da organização {organizacaoDaEntidade} não " +
-               $"pertence à organização do contexto {organizacaoDoContexto}.")
+        : base(ErrosDeIsolamento.OrganizacaoDivergente(organizacaoDaEntidade, organizacaoDoContexto))
     {
         OrganizacaoDaEntidade = organizacaoDaEntidade;
         OrganizacaoDoContexto = organizacaoDoContexto;

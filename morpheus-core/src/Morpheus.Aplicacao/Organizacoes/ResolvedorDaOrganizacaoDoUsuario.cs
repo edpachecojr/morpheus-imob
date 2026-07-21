@@ -1,4 +1,5 @@
 using Morpheus.Dominio.Organizacoes;
+using Morpheus.Dominio.Usuarios;
 
 namespace Morpheus.Aplicacao.Organizacoes;
 
@@ -24,7 +25,7 @@ public sealed class ResolvedorDaOrganizacaoDoUsuario : IResolvedorDaOrganizacaoD
     public async Task<Guid> ResolverAsync(Guid usuarioId, CancellationToken cancelamento)
     {
         if (usuarioId == Guid.Empty)
-            throw new ArgumentException("UsuarioId não pode ser vazio.", nameof(usuarioId));
+            throw new ErroDeUsuarioObrigatorio();
 
         var emCache = await _cache.ObterAsync(usuarioId, cancelamento);
         if (emCache is Guid organizacaoEmCache)

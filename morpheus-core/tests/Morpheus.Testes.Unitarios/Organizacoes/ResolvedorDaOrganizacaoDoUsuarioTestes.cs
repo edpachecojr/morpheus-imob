@@ -1,5 +1,6 @@
 using Morpheus.Aplicacao.Organizacoes;
 using Morpheus.Dominio.Organizacoes;
+using Morpheus.Dominio.Usuarios;
 using Morpheus.Testes.Unitarios.Fakes;
 
 namespace Morpheus.Testes.Unitarios.Organizacoes;
@@ -58,7 +59,7 @@ public sealed class ResolvedorDaOrganizacaoDoUsuarioTestes
             new CacheDeOrganizacaoDoUsuarioFake(),
             new ConsultaDaOrganizacaoDoUsuarioFake());
 
-        await Assert.ThrowsAsync<ArgumentException>(
+        await Assert.ThrowsAsync<ErroDeUsuarioObrigatorio>(
             () => resolvedor.ResolverAsync(Guid.Empty, CancellationToken.None));
     }
 }

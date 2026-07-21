@@ -24,7 +24,7 @@ public sealed class UsuarioDaOrganizacao : IdentityUser<Guid>, IPertenceOrganiza
     public void DefinirNomeCompleto(string nomeCompleto)
     {
         if (string.IsNullOrWhiteSpace(nomeCompleto))
-            throw new ArgumentException("Nome completo não pode ser vazio.", nameof(nomeCompleto));
+            throw new ErroDeNomeCompletoObrigatorio();
         NomeCompleto = nomeCompleto.Trim();
     }
 }

@@ -9,8 +9,7 @@ namespace Morpheus.Dominio.Usuarios;
 /// </summary>
 public sealed class ErroDeUsuarioNaoAutenticado : ErroDeRegraDeNegocio
 {
-    public ErroDeUsuarioNaoAutenticado()
-        : base("Nenhum usuário autenticado no contexto: acesso a dados negado por padrão.")
+    public ErroDeUsuarioNaoAutenticado() : base(ErrosDeUsuario.NaoAutenticado)
     {
     }
 }
