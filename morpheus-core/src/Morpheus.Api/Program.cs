@@ -1,6 +1,9 @@
+using Morpheus.Api.Autorizacao;
 using Morpheus.Api.Configuracao;
+using Morpheus.Api.Endpoints;
 using Morpheus.Api.Identidade;
 using Morpheus.Api.Observabilidade;
+using Morpheus.Api.Seguranca;
 using Morpheus.Aplicacao.Organizacoes;
 using Morpheus.Infraestrutura;
 using Serilog;
@@ -20,16 +23,24 @@ try
     construtor.Services.AdicionarInfraestrutura(stringDeConexao);
     construtor.Services.AddHttpContextAccessor();
     construtor.Services.AddScoped<IContextoDoUsuario, ContextoDoUsuarioHttp>();
+    construtor.Services.AdicionarAutenticacaoPorSessao(construtor.Environment.IsDevelopment());
+    construtor.Services.AdicionarAutorizacaoPorPermissao();
+    construtor.Services.AdicionarLimiteDeAutenticacao(construtor.Configuration);
     construtor.Services.AddOpenApi();
 
     var aplicacao = construtor.Build();
 
+    aplicacao.UseRateLimiter();
+    aplicacao.UseAuthentication();
+
+    // Depois da autenticação: só com usuário resolvido o log carrega organizacao_id.
     aplicacao.UsarObservabilidade();
+    aplicacao.UseAuthorization();
 
     if (aplicacao.Environment.IsDevelopment())
-        aplicacao.MapOpenApi();
+        aplicacao.MapOpenApi().AllowAnonymous();
 
-    aplicacao.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+    aplicacao.MapearEndpoints();
 
     aplicacao.Run();
 }
