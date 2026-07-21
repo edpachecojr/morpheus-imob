@@ -116,3 +116,21 @@ Pós-MVP (Fase 6). RF2.4. Um adaptador por portal, atrás da mesma porta.
 
 Fora do MVP porque o público inicial é o corretor autônomo — não há entre quem
 distribuir.
+
+---
+
+## E2-F4 — Conformidade de dados do lead *(pós-MVP)*
+
+> **Estória faltante identificada na revisão de 2026-07-21.** RNF13 (LGPD)
+> pede "retenção definida por tipo de dado e rotina de exclusão a pedido" para
+> todo dado pessoal, não só documento. Diferente do E5-F6 (documento de
+> identidade, tratado como MVP por decisão explícita do PRD em R4), nome e
+> telefone de lead são dado pessoal de sensibilidade menor — fica pós-MVP até
+> haver pedido real ou exigência de cliente maior.
+
+| ID | Estória | Pts |
+| --- | --- | --- |
+| E2-F4-H1 | Atender pedido de exclusão de dados do lead (dados cadastrais e histórico de conversa) | 3 |
+
+**Gatilho:** primeiro pedido real de um titular, ou exigência de auditoria de
+uma imobiliária com equipe maior.

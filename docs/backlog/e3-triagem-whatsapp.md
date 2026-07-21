@@ -11,6 +11,26 @@ agressiva derruba o rating do número (R2).
 
 ---
 
+## E3-F0 — Decisão de provedor
+
+> **Estória faltante identificada na revisão de 2026-07-21.** O PRD lista Q2
+> ("Cloud API direta ou intermediário?") como pergunta a resolver **antes**
+> deste épico, mas não havia estória cobrando essa decisão — o mesmo padrão
+> que o ADR-0002 já resolve para a escolha de stack.
+
+### E3-F0-H1 `[MVP]` · 2 pts — Spike: Cloud API direta vs. BSP intermediário
+**Como** time, **quero** decidir com evidência entre falar direto com a Cloud
+API da Meta ou usar um BSP (Business Solution Provider), **para** não montar
+E3-F1 sobre uma integração que teremos de trocar depois.
+
+- **Dado** os dois caminhos, **quando** eu comparar custo por conversa, tempo
+  de aprovação do número (D1) e esforço de integração, **então** a decisão e
+  o porquê ficam registrados em ADR próprio.
+- **E** a porta `EnviadorDeMensagem` (E3-F1-H3) já nasce desenhada para o
+  provedor escolhido — sem retrabalho de adaptador.
+
+---
+
 ## E3-F1 — Canal WhatsApp
 
 ### E3-F1-H1 `[MVP]` · 5 pts — Conectar número do tenant
@@ -128,6 +148,24 @@ Pós-MVP (Fase 6). RF3.6.
 Pós-MVP (Fase 7). RF3.7. Só com a evidência descrita no
 [ADR-0006](../adrs/0006-triagem-por-arvore-de-decisao.md) — quebrar em estórias
 menores antes de executar.
+
+### E3-F2-H8 `[MVP]` · 2 pts — Consentimento no primeiro contato
+**Como** titular dos dados, **quero** saber que falo com automação e para que
+meus dados serão usados assim que a conversa começa, **para** decidir com
+informação se continuo.
+
+> **Estória faltante identificada na revisão de 2026-07-21.** RNF13 exige
+> "consentimento no primeiro contato do WhatsApp" — não havia estória cobrindo
+> esse critério, só a identificação como bot (E3-F2-H1, RNF17).
+
+- **Dado** um lead novo, **quando** ele receber as boas-vindas (E3-F2-H1),
+  **então** a mesma mensagem informa, em uma frase, que os dados serão usados
+  para atendê-lo e onde ler a política completa.
+- **E** o registro do consentimento (versão do texto e horário) fica ligado ao
+  lead, para auditoria.
+- **E** pedir para não ser mais contatado a qualquer momento leva ao mesmo
+  estado terminal `descartado` da H5 acima — consentimento não é um checkbox
+  de mão única.
 
 ---
 

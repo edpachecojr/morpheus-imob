@@ -175,3 +175,40 @@ Pós-MVP (Fase 7). RF5.6 — ZIP estruturado ou PDF mergido.
 
 ### E5-F5-H5 · 8 pts — OCR e leitura automática de documento
 Pós-MVP (Fase 7). RF5.7. Quebrar antes de executar.
+
+---
+
+## E5-F6 — Retenção e exclusão de documento pessoal
+
+> **Estórias faltantes identificadas na revisão de 2026-07-21.** O PRD é
+> explícito: "Retenção e exclusão são requisito, não backlog" (R4) — ou seja,
+> ao contrário do resto deste épico, isto **não pode** ser empurrado para
+> pós-MVP só porque o corretor já consegue fechar um dossiê sem isso. RG, CPF
+> e comprovante de renda são o dado mais sensível de todo o sistema (Q5).
+
+### E5-F6-H1 `[MVP]` · 3 pts — Prazo de retenção por tipo de documento e expurgo automático
+**Como** titular do documento, **quero** que ele não fique guardado para
+sempre depois que o negócio terminou ou morreu, **para** que meu dado pessoal
+não vire passivo de vazamento sem motivo de negócio.
+
+- **Dado** um dossiê `completo` ou `cancelado` há mais que o prazo de retenção
+  configurado, **quando** a rotina de expurgo rodar, **então** o conteúdo do
+  anexo é apagado do storage, mantendo só o metadado auditável (quem, quando,
+  que tipo de documento existiu).
+- **E** o prazo é configurável por tipo de documento, não um valor único fixo
+  no código.
+- **E** apagar o conteúdo **não** apaga a trilha de auditoria de acesso
+  (E5-F3-H3) — são dados de naturezas diferentes.
+- **E** o teste usa relógio falso; a rotina não toca rede além do storage.
+
+### E5-F6-H2 `[MVP]` · 2 pts — Exclusão antecipada a pedido do titular
+**Como** titular do documento, **quero** pedir a exclusão antes do prazo
+padrão, **para** exercer meu direito sem esperar o expurgo automático.
+
+- **Dado** um pedido de exclusão identificando o participante, **quando** o
+  corretor confirmar o pedido, **então** todos os anexos daquele participante
+  são apagados do storage imediatamente.
+- **E** dossiê com pendência de aprovação em andamento é encerrado como
+  `cancelado` — não fica em limbo sem documento e sem situação.
+- **E** o pedido e sua execução ficam registrados (quem pediu, quando, quem
+  confirmou), sem guardar o conteúdo do documento excluído.
