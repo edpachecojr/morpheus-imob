@@ -18,6 +18,8 @@ decisão fez sentido, inclusive quando ela deixa de fazer.
 | [0007](0007-integracoes-atras-de-porta.md) | Integrações externas atrás de porta do domínio | Aceito | 2026-07-20 |
 | [0008](0008-observabilidade-agnostica.md) | Observabilidade agnóstica via Serilog e OpenTelemetry | Aceito | 2026-07-21 |
 | [0009](0009-eventos-de-dominio-e-outbox.md) | Eventos de domínio com gravação transacional no outbox | Aceito | 2026-07-21 |
+| [0010](0010-papeis-e-permissoes-no-identity.md) | Papéis e permissões no Identity, não em enum | Aceito | 2026-07-21 |
+| [0011](0011-sessao-opaca-no-servidor.md) | Sessão opaca no servidor, com cookie de identificador | Aceito | 2026-07-21 |
 
 ## Quando escrever um ADR
 
