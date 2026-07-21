@@ -14,6 +14,7 @@ identidade e acesso a dados. Contexto de produto e regras em
 | Consultas performáticas | Dapper |
 | Banco | PostgreSQL 17 |
 | Identidade | IdentityCore |
+| Observabilidade | Serilog (log CLEF) + OpenTelemetry (traces OTLP); Seq local |
 | Testes | xUnit |
 
 Detalhes e trade-offs em [../docs/fundacao/stack.md](../docs/fundacao/stack.md)
@@ -51,7 +52,7 @@ Não há query filter global no model creating — o filtro é explícito e estr
 Pré-requisitos: .NET 10 SDK e Docker.
 
 ```bash
-# 1. Postgres local
+# 1. Postgres e Seq (visualizador de logs/traces) locais
 docker compose up -d
 
 # 2. Configuração obrigatória
@@ -70,6 +71,22 @@ dotnet run --project src/Morpheus.Api
 
 A API **falha ao subir** sem `MORPHEUS_BANCO_CONEXAO`, dizendo qual variável
 falta e o formato esperado.
+
+## Observabilidade
+
+Log estruturado (Serilog, formato CLEF) e rastreamento distribuído
+(OpenTelemetry) agnósticos de fornecedor — trocar de APM é só endpoint e
+protocolo, sem tocar em código ([ADR-0008](../docs/adrs/0008-observabilidade-agnostica.md)).
+
+- **Console** recebe log em JSON em qualquer ambiente (o coletor lê stdout).
+- **Seq** local, em <http://localhost:5341>, recebe log e traces em dev via
+  `appsettings.Development.json`. Nada de segredo: é ambiente de máquina.
+- Cada linha carrega correlação `TraceId`/`SpanId` e, para APM que lê decimal
+  (Datadog), `dd.trace_id`/`dd.span_id`. Com sessão autenticada, o log ganha
+  `organizacao_id` (o tenant).
+- Log transversal entra por decorador no DI (`Decorar<,>`), sem editar o
+  serviço observado (OCP). `RedatorDeCamposSensiveis` mascara campo sensível.
+- Em produção, aponte `Rastreamento__EndpointOtlp` (em `.env`) para o seu APM.
 
 ## Rodar a suíte
 

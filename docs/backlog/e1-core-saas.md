@@ -170,7 +170,7 @@ MVP para não exigir migração.
 
 ## E1-F4 — Observabilidade — ◐ em andamento
 
-### ◐ E1-F4-H1 `[MVP]` · 2 pts — Log JSON estruturado
+### ✅ E1-F4-H1 `[MVP]` · 2 pts — Log JSON estruturado
 **Como** operador, **quero** log pesquisável, **para** investigar incidente sem
 adivinhar.
 
@@ -179,8 +179,17 @@ adivinhar.
 - **E** um teste automatizado prova que nenhum log contém token, senha, hash ou
   dado pessoal não mascarado.
 
-> **◐ Parcial:** o host já emite log em JSON (`AddJsonConsole` em `Program.cs`).
-> Faltam os campos `tenant_id` e `request_id`/`job_id` e o teste anti-vazamento.
+> **✅ Feito:** Serilog + OpenTelemetry com sinks console (CLEF) e Seq local,
+> exportação OTLP agnóstica de fornecedor ([ADR-0008](../adrs/0008-observabilidade-agnostica.md)),
+> config no appsettings via `IOptions`. Cada linha traz `@t`/`@l`/`@mt` (CLEF, no
+> lugar dos nomes literais — decisão registrada no ADR), correlação `TraceId`/
+> `SpanId` e `dd.trace_id`/`dd.span_id` (decimal, para Datadog), e `organizacao_id`
+> (o tenant_id) via `LogContext` quando há sessão. Log transversal entra por
+> decorador no DI (OCP), sem mediator. `RedatorDeCamposSensiveis` mascara campos
+> sensíveis, com teste anti-vazamento.
+>
+> **Observação:** `organizacao_id` só aparece com sessão autenticada; até a
+> autenticação (E1-F2) existir, o campo fica ausente por construção.
 
 ### ☐ E1-F4-H2 `[MVP]` · 2 pts — Tratamento de erro ponta a ponta
 - **Dado** um erro não tratado, **quando** ocorrer, **então** o usuário recebe

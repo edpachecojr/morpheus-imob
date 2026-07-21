@@ -16,6 +16,7 @@ decisão fez sentido, inclusive quando ela deixa de fazer.
 | [0005](0005-rbac-simples.md) | RBAC simples com permissões nomeadas | Aceito | 2026-07-20 |
 | [0006](0006-triagem-por-arvore-de-decisao.md) | Triagem por árvore de decisão, não LLM, no MVP | Aceito | 2026-07-20 |
 | [0007](0007-integracoes-atras-de-porta.md) | Integrações externas atrás de porta do domínio | Aceito | 2026-07-20 |
+| [0008](0008-observabilidade-agnostica.md) | Observabilidade agnóstica via Serilog e OpenTelemetry | Aceito | 2026-07-21 |
 
 ## Quando escrever um ADR
 

@@ -26,8 +26,11 @@ _Atualizado em 2026-07-21._
 - ☐ **E1-F2 — Autenticação**: não iniciada.
 - ☐ **E1-F3 — Autorização**: não iniciada.
 - ◐ **E1-F4 — Observabilidade**
-  - ◐ H1 — Log JSON: `AddJsonConsole` configurado; **faltam** campos
-    `tenant_id`/`request_id` e teste anti-vazamento de segredo.
+  - ✅ H1 — Log JSON estruturado: Serilog + OpenTelemetry, sinks console (CLEF) e
+    Seq local, correlação `TraceId`/`SpanId` e `dd.trace_id`/`dd.span_id` para
+    APM decimal (Datadog), `organizacao_id` (tenant_id) via `LogContext` quando
+    há sessão, redator anti-vazamento com teste. Config no appsettings via
+    `IOptions`; exportação OTLP agnóstica de fornecedor ([ADR-0008](../adrs/0008-observabilidade-agnostica.md)).
   - ◐ H2 — Tratamento de erro ponta a ponta: vocabulário de falha em pé
     (`Resultado`/`Resultado<T>` + `Erro`), exceções de domínio portando `Erro`
     e catálogos por agregado; **falta** a tradução HTTP (ProblemDetails) quando
@@ -44,6 +47,9 @@ _Atualizado em 2026-07-21._
   de fato, sempre herdando de `ErroDeRegraDeNegocio` e portando um `Erro`.
 - Entidades nascem por factory (`Imovel.Cadastrar`, `Organizacao.Fundar` →
   `Resultado`) e voltam do banco por `Rehidratar` (reconstrução sem revalidar).
+- Observabilidade agnóstica de fornecedor: Serilog (log CLEF) + OpenTelemetry
+  (traces OTLP), Seq local, correlação pronta para Datadog e log transversal por
+  decorador no DI (OCP), sem mediator — [ADR-0008](../adrs/0008-observabilidade-agnostica.md).
 
 ## Próximo passo
 
