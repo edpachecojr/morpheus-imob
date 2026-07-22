@@ -11,6 +11,9 @@ public static class ErrosDeImovel
     public static readonly Erro CodigoObrigatorio =
         new("Imovel.CodigoObrigatorio", "Código de referência não pode ser vazio.");
 
+    public static readonly Erro TituloObrigatorio =
+        new("Imovel.TituloObrigatorio", "Título não pode ser vazio.");
+
     public static readonly Erro EnderecoObrigatorio =
         new("Imovel.EnderecoObrigatorio", "Endereço não pode ser vazio.");
 }

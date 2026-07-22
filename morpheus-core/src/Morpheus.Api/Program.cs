@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Morpheus.Api.Autorizacao;
 using Morpheus.Api.Configuracao;
 using Morpheus.Api.Endpoints;
@@ -37,6 +38,11 @@ try
     construtor.Services.AddProblemDetails(
         opcoes => opcoes.CustomizeProblemDetails = contexto => contexto.ProblemDetails.Extensions.Remove("traceId"));
     construtor.Services.AddOpenApi();
+
+    // Enums saem como nome legível ("Locacao", "Disponivel"), não índice numérico
+    // — o cliente da API não decora ordem de declaração (E2-F1-H2).
+    construtor.Services.ConfigureHttpJsonOptions(
+        opcoes => opcoes.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
     var aplicacao = construtor.Build();
 

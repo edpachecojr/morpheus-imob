@@ -94,13 +94,22 @@ public abstract class TesteDeIntegracao
     /// isolando a semeadura da lógica de contexto autenticado. O tenant entra na
     /// própria factory, como manda o domínio.
     /// </summary>
-    protected async Task SemearImovelAsync(Guid organizacaoId, string codigo, string endereco)
+    protected Task SemearImovelAsync(Guid organizacaoId, string codigo, string endereco) =>
+        SemearImovelAsync(organizacaoId, codigo, titulo: codigo, FinalidadeDoImovel.Locacao, endereco);
+
+    /// <summary>
+    /// Sobrecarga que também controla título e finalidade, para os testes de busca
+    /// e filtro da listagem (E2-F1-H2).
+    /// </summary>
+    protected async Task SemearImovelAsync(
+        Guid organizacaoId, string codigo, string titulo, FinalidadeDoImovel finalidade, string endereco)
     {
         Ambiente.EncerrarSessao();
         using var escopo = Ambiente.Aplicacao.Services.CreateScope();
         var banco = escopo.ServiceProvider.GetRequiredService<MorpheusDbContext>();
 
-        var imovel = Imovel.Cadastrar(new OrganizacaoDona(organizacaoId), codigo, endereco, TimeProvider.System).Valor;
+        var imovel = Imovel.Cadastrar(
+            new OrganizacaoDona(organizacaoId), codigo, titulo, finalidade, endereco, TimeProvider.System).Valor;
         banco.Imoveis.Add(imovel);
         await banco.SaveChangesAsync();
     }

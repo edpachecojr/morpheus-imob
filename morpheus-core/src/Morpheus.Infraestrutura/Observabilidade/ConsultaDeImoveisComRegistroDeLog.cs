@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Morpheus.Aplicacao.Comum;
 using Morpheus.Aplicacao.Imoveis;
 
 namespace Morpheus.Infraestrutura.Observabilidade;
@@ -23,7 +24,8 @@ public sealed class ConsultaDeImoveisComRegistroDeLog : IConsultaDeImoveisResumi
         _diario = diario;
     }
 
-    public Task<IReadOnlyList<ImovelResumo>> ListarAsync(CancellationToken cancelamento) =>
+    public Task<ResultadoPaginado<ImovelResumo>> ListarAsync(
+        FiltroDeListagemDeImoveis filtro, CancellationToken cancelamento) =>
         RegistroDeExecucaoDeServico.MedirAsync(
-            _diario, "listar_imoveis_resumidos", () => _interno.ListarAsync(cancelamento));
+            _diario, "listar_imoveis_resumidos", () => _interno.ListarAsync(filtro, cancelamento));
 }

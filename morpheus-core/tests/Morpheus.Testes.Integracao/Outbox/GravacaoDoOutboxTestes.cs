@@ -58,7 +58,8 @@ public sealed class GravacaoDoOutboxTestes : TesteDeIntegracao
             {
                 var banco = provedor.GetRequiredService<MorpheusDbContext>();
                 var imovel = Imovel.Cadastrar(
-                    new OrganizacaoDona(organizacaoInexistente), "AP-999", "Rua Intrusa, 999", TimeProvider.System).Valor;
+                    new OrganizacaoDona(organizacaoInexistente), "AP-999", "Imóvel intruso", FinalidadeDoImovel.Locacao,
+                    "Rua Intrusa, 999", TimeProvider.System).Valor;
                 banco.Imoveis.Add(imovel);
                 await banco.SaveChangesAsync();
             }));

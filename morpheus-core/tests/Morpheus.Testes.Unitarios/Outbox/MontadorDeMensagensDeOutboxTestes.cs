@@ -53,7 +53,8 @@ public sealed class MontadorDeMensagensDeOutboxTestes
     public void Drenar_ignora_entidade_sem_eventos()
     {
         var semEventos = Imovel.Rehidratar(
-            Guid.NewGuid(), TenantId, "AP-200", "Rua Sem Evento, 200", Instante, Instante);
+            Guid.NewGuid(), TenantId, "AP-200", "Título qualquer", FinalidadeDoImovel.Locacao,
+            SituacaoDoImovel.Disponivel, "Rua Sem Evento, 200", Instante, Instante);
 
         Assert.Empty(_montador.Drenar([semEventos]));
     }
@@ -63,12 +64,16 @@ public sealed class MontadorDeMensagensDeOutboxTestes
     {
         // As entidades reais tornam isto impossível (tenant obrigatório na construção);
         // o ramo defensivo ainda recusa uma portadora que não expõe organização.
-        var evento = new ImovelCadastradoEvento(Guid.NewGuid(), "AP-101", "Rua das Acácias, 100", Instante);
+        var evento = new ImovelCadastradoEvento(
+            Guid.NewGuid(), "AP-101", "Título qualquer", FinalidadeDoImovel.Locacao,
+            SituacaoDoImovel.Disponivel, "Rua das Acácias, 100", Instante);
         var semTenant = new PortadoraDeEventoSemTenant(evento);
 
         Assert.Throws<InvalidOperationException>(() => _montador.Drenar([semTenant]));
     }
 
     private static Imovel ImovelDaOrganizacao() =>
-        Imovel.Cadastrar(new OrganizacaoDona(TenantId), "AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
+        Imovel.Cadastrar(
+            new OrganizacaoDona(TenantId), "AP-101", "Título qualquer", FinalidadeDoImovel.Locacao,
+            "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
 }

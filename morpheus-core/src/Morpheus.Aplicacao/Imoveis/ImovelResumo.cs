@@ -1,3 +1,5 @@
+using Morpheus.Dominio.Imoveis;
+
 namespace Morpheus.Aplicacao.Imoveis;
 
 /// <summary>
@@ -5,4 +7,10 @@ namespace Morpheus.Aplicacao.Imoveis;
 /// Modelo de leitura enxuto, separado da entidade de domínio: a escrita passa
 /// pelo <see cref="Morpheus.Dominio.Imoveis.Imovel"/>, a leitura rápida por aqui.
 /// </summary>
-public sealed record ImovelResumo(Guid Id, string CodigoDeReferencia, string Endereco);
+public sealed record ImovelResumo(
+    Guid Id,
+    string CodigoDeReferencia,
+    string Titulo,
+    FinalidadeDoImovel Finalidade,
+    SituacaoDoImovel Situacao,
+    string Endereco);

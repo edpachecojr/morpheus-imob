@@ -41,5 +41,9 @@ public sealed class UnicidadeDeCodigoPorOrganizacaoTestes : TesteDeIntegracao
     }
 
     private static async Task<IReadOnlyList<ImovelResumo>> ListarResumos(IServiceProvider provedor)
-        => await provedor.GetRequiredService<IConsultaDeImoveisResumidos>().ListarAsync(CancellationToken.None);
+    {
+        var pagina = await provedor.GetRequiredService<IConsultaDeImoveisResumidos>()
+            .ListarAsync(new FiltroDeListagemDeImoveis(null, null, null), CancellationToken.None);
+        return pagina.Itens;
+    }
 }

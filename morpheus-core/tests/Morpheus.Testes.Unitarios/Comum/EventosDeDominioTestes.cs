@@ -16,12 +16,17 @@ public sealed class EventosDeDominioTestes
     [Fact]
     public void Cadastrar_imovel_registra_evento_com_dados_completos()
     {
-        var imovel = Imovel.Cadastrar(Tenant, "AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
+        var imovel = Imovel.Cadastrar(
+            Tenant, "AP-101", "Apartamento com vista para o parque", FinalidadeDoImovel.Locacao,
+            "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
 
         var evento = Assert.Single(imovel.EventosDeDominio);
         var cadastrado = Assert.IsType<ImovelCadastradoEvento>(evento);
         Assert.Equal(imovel.Id, cadastrado.ImovelId);
         Assert.Equal("AP-101", cadastrado.CodigoDeReferencia);
+        Assert.Equal("Apartamento com vista para o parque", cadastrado.Titulo);
+        Assert.Equal(FinalidadeDoImovel.Locacao, cadastrado.Finalidade);
+        Assert.Equal(SituacaoDoImovel.Disponivel, cadastrado.Situacao);
         Assert.Equal("Rua das Acácias, 100", cadastrado.Endereco);
         Assert.Equal(Instante, cadastrado.OcorridoEm);
     }
@@ -41,7 +46,9 @@ public sealed class EventosDeDominioTestes
     [Fact]
     public void Cadastro_invalido_nao_registra_evento()
     {
-        var resultado = Imovel.Cadastrar(Tenant, "   ", "Rua das Acácias, 100", new RelogioFixo(Instante));
+        var resultado = Imovel.Cadastrar(
+            Tenant, "   ", "Apartamento com vista para o parque", FinalidadeDoImovel.Locacao,
+            "Rua das Acácias, 100", new RelogioFixo(Instante));
 
         Assert.True(resultado.Falha);
     }
@@ -49,7 +56,9 @@ public sealed class EventosDeDominioTestes
     [Fact]
     public void LimparEventos_esvazia_a_fila_de_eventos()
     {
-        var imovel = Imovel.Cadastrar(Tenant, "AP-101", "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
+        var imovel = Imovel.Cadastrar(
+            Tenant, "AP-101", "Apartamento com vista para o parque", FinalidadeDoImovel.Locacao,
+            "Rua das Acácias, 100", new RelogioFixo(Instante)).Valor;
 
         imovel.LimparEventos();
 

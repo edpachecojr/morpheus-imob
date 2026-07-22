@@ -11,5 +11,8 @@ namespace Morpheus.Dominio.Imoveis;
 public sealed record ImovelCadastradoEvento(
     Guid ImovelId,
     string CodigoDeReferencia,
+    string Titulo,
+    FinalidadeDoImovel Finalidade,
+    SituacaoDoImovel Situacao,
     string Endereco,
     DateTimeOffset OcorridoEm) : IEventoDeDominio;

@@ -1,3 +1,5 @@
+using Morpheus.Aplicacao.Comum;
+
 namespace Morpheus.Aplicacao.Imoveis;
 
 /// <summary>
@@ -8,8 +10,10 @@ namespace Morpheus.Aplicacao.Imoveis;
 public interface IConsultaDeImoveisResumidos
 {
     /// <summary>
-    /// Lista os imóveis resumidos da organização do contexto.
-    /// Exemplo: <c>await consulta.ListarAsync(cancelamento)</c>.
+    /// Lista, busca e pagina os imóveis resumidos da organização do contexto,
+    /// conforme <paramref name="filtro"/> (E2-F1-H2).
+    /// Exemplo: <c>await consulta.ListarAsync(new FiltroDeListagemDeImoveis(null, null, null), cancelamento)</c>.
     /// </summary>
-    Task<IReadOnlyList<ImovelResumo>> ListarAsync(CancellationToken cancelamento);
+    Task<ResultadoPaginado<ImovelResumo>> ListarAsync(
+        FiltroDeListagemDeImoveis filtro, CancellationToken cancelamento);
 }

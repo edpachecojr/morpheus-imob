@@ -28,7 +28,8 @@ public sealed class IntegridadeReferencialEntreOrganizacoesTestes : TesteDeInteg
             {
                 var banco = provedor.GetRequiredService<MorpheusDbContext>();
                 var imovel = Imovel.Cadastrar(
-                    new OrganizacaoDona(organizacaoInexistente), "AP-700", "Rua Fantasma, 700", TimeProvider.System).Valor;
+                    new OrganizacaoDona(organizacaoInexistente), "AP-700", "Casa fantasma", FinalidadeDoImovel.Venda,
+                    "Rua Fantasma, 700", TimeProvider.System).Valor;
                 banco.Imoveis.Add(imovel);
                 await banco.SaveChangesAsync();
             }));

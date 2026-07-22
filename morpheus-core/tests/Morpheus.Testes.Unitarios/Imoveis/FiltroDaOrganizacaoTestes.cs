@@ -42,5 +42,7 @@ public sealed class FiltroDaOrganizacaoTestes
     }
 
     private static Imovel ImovelVinculado(string codigo, Guid organizacaoId) =>
-        Imovel.Cadastrar(new OrganizacaoDona(organizacaoId), codigo, "Endereço qualquer, 1", TimeProvider.System).Valor;
+        Imovel.Cadastrar(
+            new OrganizacaoDona(organizacaoId), codigo, "Título qualquer", FinalidadeDoImovel.Locacao,
+            "Endereço qualquer, 1", TimeProvider.System).Valor;
 }
